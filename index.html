@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>La Settimana Possibile — planner settimanale A3</title>
-<meta name="description" content="Planner settimanale su un solo foglio A3 orizzontale, da compilare a penna. Si pianifica prima, si fa il consuntivo dopo.">
+<title>The Week That Fits — A3 weekly planner</title>
+<meta name="description" content="A one-sheet A3 landscape weekly planner, designed to be filled in by hand. Plan first, review later.">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,66 +12,64 @@
 
 <style>
 /* ═══════════════════════════════════════════════════════════════════════
-   LA SETTIMANA POSSIBILE — foglio A3 orizzontale (420 × 297 mm)
+   THE WEEK THAT FITS — A3 landscape sheet (420 × 297 mm)
    Copyright (C) 2026 Massimiliano Camillucci — AGPL-3.0-or-later
 
-   Ispirato al Kakebo (metodo giapponese di budgeting domestico a penna,
-   su quaderno) e al Lean Canvas di Ash Maurya (a sua volta derivato dal
-   Business Model Canvas di Osterwalder): stessa idea, un dominio diverso
-   — un'unica pagina a griglia come strumento di pianificazione e
-   consuntivo, compilata a mano. Dettagli nel README.
+   Inspired by Kakebo (the Japanese handwritten household-budgeting method)
+   and Ash Maurya's Lean Canvas (itself derived from Osterwalder's Business
+   Model Canvas): the same idea in another domain — one handwritten grid page
+   for planning and review. Details in the README.
 
-   Print-first: il layout è pensato per la carta, lo schermo è anteprima.
-   Stampa con Ctrl+P → A3 orizzontale, margini "nessuno",
-   grafica di sfondo ATTIVA.
+   Print-first: the layout is designed for paper; the screen is a preview.
+   Print with Ctrl+P → A3 landscape, “None” margins,
+   background graphics ON.
 
-   Per personalizzare: parti dal blocco :root qui sotto.
-   Guida completa in docs/PERSONALIZZA.md
+   To customise: start with the :root block below.
+   Full guide: docs/CUSTOMIZE.md
    ═══════════════════════════════════════════════════════════════════════ */
 
 :root {
   /* ─── PALETTE ────────────────────────────────────────────────────────
-     Cambiare questi otto valori ricolora l'intero foglio. */
-  --paper:      #EEEAE0;   /* fondo del foglio */
-  --paper-tile: #F5F2EA;   /* fondo dei riquadri neutri */
-  --dot:        #DCD6C6;   /* reticolo di puntini */
-  --ink:        #26344A;   /* testo, bordi e filetti principali */
-  --ink-soft:   #C9C2B2;   /* filetti secondari, separatori interni */
-  --accent:     #B5533C;   /* numerazione, occhielli, evidenze */
+     Changing these eight values recolours the entire sheet. */
+  --paper:      #EEEAE0;   /* sheet background */
+  --paper-tile: #F5F2EA;   /* neutral box background */
+  --dot:        #DCD6C6;   /* dot grid */
+  --ink:        #26344A;   /* text, borders and primary rules */
+  --ink-soft:   #C9C2B2;   /* secondary rules and internal dividers */
+  --accent:     #B5533C;   /* numbering and highlights */
 
-  /* Verde "protetto": ciò che non si negozia (famiglia, impegni fissi). */
+  /* “Protected” green: what is non-negotiable (family, fixed commitments). */
   --protected:      #2F4A3C;
   --protected-bg:   #DCE8DE;
-  --protected-soft: #B7CCBB;   /* filetti interni sul fondo verde */
+  --protected-soft: #B7CCBB;   /* internal rules on the green background */
 
-  /* Rosso "limite": ciò che questa settimana si evita. */
+  /* “Limit” red: what this week avoids. */
   --limit:      #9C4A4A;
   --limit-bg:   #F3E4E0;
-  --limit-soft: #DFC4BD;       /* filetti interni sul fondo rosso */
+  --limit-soft: #DFC4BD;       /* internal rules on the red background */
 
-  --screen-bg: #C9C6BF;    /* fondo dell'anteprima a schermo, non si stampa */
+  --screen-bg: #C9C6BF;    /* screen-only preview background */
 
   /* ─── TIPOGRAFIA ─────────────────────────────────────────────────────
-     Sostituendo i font ricordati di aggiornare anche il <link> a Google
-     Fonts nell'<head>: qui si dichiara l'uso, lì si scarica il file. */
-  --font-display: 'Space Grotesk', system-ui, sans-serif;  /* titoli */
-  --font-body:    Inter, system-ui, sans-serif;            /* testo corrente */
-  --font-mono:    'IBM Plex Mono', ui-monospace, monospace; /* etichette */
+     When replacing these fonts, update the Google Fonts <link> in <head> too:
+     this declares the use; that downloads the files. */
+  --font-display: 'Space Grotesk', system-ui, sans-serif;  /* headings */
+  --font-body:    Inter, system-ui, sans-serif;            /* body text */
+  --font-mono:    'IBM Plex Mono', ui-monospace, monospace; /* labels */
 
   /* ─── GEOMETRIA ──────────────────────────────────────────────────────
-     ATTENZIONE: la regola @page qui sotto NON può leggere queste
-     variabili (le custom properties non si risolvono dentro @page).
-     Cambiando formato vanno aggiornati ENTRAMBI i punti. */
-  --sheet-w: 420mm;        /* A3 orizzontale */
+     WARNING: the @page rule below CANNOT read these variables (custom
+     properties do not resolve inside @page). Change BOTH places when resizing. */
+  --sheet-w: 420mm;        /* A3 landscape */
   --sheet-h: 297mm;
-  --margin:  10mm;         /* rientro del contenuto dal bordo carta */
-  --gutter:   4mm;         /* distanza fra le sezioni e dentro le griglie */
+  --margin:  10mm;         /* content inset from the paper edge */
+  --gutter:   4mm;         /* spacing between sections and within grids */
 
-  --col-label: 34mm;       /* colonna nomi nella tabella del log */
-  --col-total: 24mm;       /* colonna Tot nella tabella del log */
+  --col-label: 34mm;       /* label column in the log table */
+  --col-total: 24mm;       /* total column in the log table */
 }
 
-/* Formato carta. Duplica --sheet-w / --sheet-h: vedi nota qui sopra. */
+/* Paper size. Mirrors --sheet-w / --sheet-h: see note above. */
 @page { size: 420mm 297mm; margin: 0; }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -92,8 +90,8 @@ html, body {
   font-family: var(--font-body);
 }
 
-/* Anteprima a schermo: il foglio galleggia centrato su un fondo neutro.
-   min-width evita che una finestra stretta comprima il foglio. */
+/* Screen preview: the sheet floats centred on a neutral background.
+   min-width prevents a narrow window from compressing the sheet. */
 @media screen {
   body {
     display: flex;
@@ -105,9 +103,8 @@ html, body {
   .sheet { box-shadow: 0 12px 32px rgba(45, 43, 43, 0.28); }
 }
 
-/* In stampa il foglio È la pagina. width/height espliciti e overflow:hidden
-   su html/body evitano che un arrotondamento sub-millimetrico del layout
-   sbordi e generi una seconda pagina bianca. */
+/* In print, the sheet IS the page. Explicit width/height and overflow:hidden
+   on html/body prevent sub-millimetre rounding from creating a second blank page. */
 @media print {
   html, body {
     width: var(--sheet-w);
@@ -121,25 +118,23 @@ html, body {
     break-after: avoid;
   }
 
-  /* ─── STAMPA A INCHIOSTRO RIDOTTO (comportamento predefinito) ────────
-     Il fondo carta copre il 100% di un A3: stamparlo tinto vuol dire
-     saturare un foglio intero ogni settimana. Qui i due fondi neutri
-     diventano bianchi — cioè il getto non ci passa proprio.
+  /* ─── INK-SAVING PRINT (default behaviour) ──────────────────────────
+     The paper background covers 100% of an A3 sheet; printing it tinted would
+     saturate a full page every week. The two neutral backgrounds become white.
 
-     Le tinte verde e rossa restano: sono le due righe che si leggono a
-     colpo d'occhio, valgono l'inchiostro. Coprono circa un decimo del
-     foglio contro il 100% del fondo carta.
+     The green and red tints remain: they are the two rows that need to be seen
+     at a glance and cover about a tenth of the sheet.
 
-     Per stampare (o esportare in PDF) col fondo tinto, come si vede a
-     schermo:  <body class="print-tinted">                              */
+     To print (or export a PDF) with the same tinted background as the screen:
+     <body class="print-tinted">                                         */
   body:not(.print-tinted) {
     --paper: #FFFFFF;
     --paper-tile: #FFFFFF;
   }
 }
 
-/* Reticolo di puntini a passo 8 mm, sfasato di 5 mm.
-   Raggio 0.55px: quasi invisibile a schermo, corretto in stampa a 300 dpi. */
+/* Dot grid every 8 mm, offset by 5 mm.
+   A 0.55px radius is almost invisible on screen and right at 300 dpi in print. */
 .grid-dots {
   position: absolute;
   inset: 0;
@@ -148,8 +143,8 @@ html, body {
   background-position: 5mm 5mm;
 }
 
-/* Crocini d'angolo per il taglio a registro.
-   Si spengono con <body class="no-fiducials">. */
+/* Corner crop marks for trimming to register.
+   Disable them with <body class="no-fiducials">. */
 .fiducial {
   position: absolute;
   width: 7mm;
@@ -161,8 +156,9 @@ html, body {
 .fiducial-bl { left: 6mm;  bottom: 6mm; border-left: 1.3px solid var(--ink); border-bottom: 1.3px solid var(--ink); }
 .fiducial-br { right: 6mm; bottom: 6mm; border-right: 1.3px solid var(--ink); border-bottom: 1.3px solid var(--ink); }
 
-/* Colonna portante. Le tre sezioni elastiche — rotte, log, consuntivo —
-   si dividono lo spazio che avanza in rapporto 1.1 : 1 : 1. */
+/* Structural column. The three flexible sections — routes, log, review —
+   share remaining space in a 1.1 : 1.15 : .85 ratio, keeping log rows
+   high enough to write in with a pen. */
 .frame {
   position: relative;
   height: 100%;
@@ -172,12 +168,12 @@ html, body {
   gap: var(--gutter);
 }
 
-/* — tipografia ricorrente ——————————————————————————————————————————— */
+/* — recurring typography ———————————————————————————————————————————— */
 .mono { font-family: var(--font-mono); text-transform: uppercase; }
 .display { font-family: var(--font-display); font-weight: 700; line-height: 1; }
 .rule-dotted { border-bottom: 1.2px dotted var(--ink); }
 
-/* — linea di strappo ————————————————————————————————————————————————— */
+/* — tear line ——————————————————————————————————————————————————————— */
 .tearline {
   display: flex;
   align-items: center;
@@ -189,7 +185,7 @@ html, body {
 }
 .tearline > .dash { flex: 1; border-top: 1px dashed var(--ink); }
 
-/* — testata ——————————————————————————————————————————————————————————— */
+/* — masthead ————————————————————————————————————————————————————————— */
 .masthead {
   display: flex;
   align-items: flex-end;
@@ -214,7 +210,7 @@ html, body {
 .identity-row .fill { flex: 1; height: 5mm; }
 .identity-row .fill-short { width: 26mm; height: 5mm; }
 
-/* — etichetta di sezione (01 … 04) ————————————————————————————————— */
+/* — section label (01 … 04) ———————————————————————————————————————— */
 .section-label {
   display: flex;
   align-items: baseline;
@@ -241,7 +237,7 @@ html, body {
 .tile-note { font-size: 7.5pt; line-height: 1.35; }
 .tile-fill { margin-top: auto; height: 6.5mm; border-bottom: 1.2px dotted var(--ink); }
 
-/* Varianti cromatiche: verde = protetto, rosso = limite. */
+/* Colour variants: green = protected, red = limit. */
 .tile-protected { border-color: var(--protected); background: var(--protected-bg); color: var(--protected); }
 .tile-protected .tile-kicker { color: var(--protected); }
 .tile-protected .tile-fill { border-bottom-color: var(--protected); }
@@ -250,7 +246,7 @@ html, body {
 .tile-limit .tile-kicker { color: var(--limit); }
 .tile-limit .tile-fill { border-bottom-color: var(--limit); }
 
-/* — 02 · obiettivi per ambito ——————————————————————————————————————— */
+/* — 02 · goals by area ————————————————————————————————————————————— */
 .routes-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -273,10 +269,10 @@ html, body {
 .route-field .label { font-size: 6pt; letter-spacing: 0.14em; opacity: 0.75; }
 .route-field .fill { height: 6mm; }
 
-/* — 03 · log delle attività reali ————————————————————————————————————
-   Griglia costruita a flexbox: colonna etichetta fissa, sette giorni
-   elastici, colonna totale fissa. Le righe si dividono l'altezza. */
-.log { display: flex; flex-direction: column; flex: 1; }
+/* — 03 · what actually happened ——————————————————————————————————————
+   A flexbox grid: fixed label column, seven flexible days, fixed total column.
+   Rows share the available height. */
+.log { display: flex; flex-direction: column; flex: 1.15; }
 
 .log-head {
   display: flex;
@@ -324,8 +320,8 @@ html, body {
 .log-row .col-day { flex: 1; border-left: 1px solid var(--ink-soft); }
 .log-row .col-total { width: var(--col-total); border-left: 1.3px solid var(--ink); }
 
-/* Riga protetta (Famiglia) e riga limite (Not-to-do): si spuntano,
-   non si contano. Per questo hanno fondo pieno e filetti attenuati. */
+/* Protected (Family) and limit (Not-to-do) rows are ticked, not counted.
+   They use a full background and softened rules for that reason. */
 .log-row-protected { background: var(--protected-bg); border-bottom-color: var(--protected); }
 .log-row-protected .col-label { color: var(--protected); }
 .log-row-protected .col-label .num { color: inherit; }
@@ -361,8 +357,8 @@ html, body {
 .legend-custom .fill { flex: 1; height: 4mm; }
 .legend-custom .caption { color: var(--accent); }
 
-/* — 04 · consuntivo ————————————————————————————————————————————————— */
-.review-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gutter); flex: 1; }
+/* — 04 · review ———————————————————————————————————————————————————— */
+.review-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gutter); flex: .85; }
 .review {
   display: flex;
   flex-direction: column;
@@ -373,8 +369,8 @@ html, body {
 .review-head { display: flex; align-items: baseline; gap: 2.5mm; }
 .review-head .num { font-size: 7pt; color: var(--accent); }
 .review-head .text { font-size: 13pt; }
-/* Righe distribuite da space-between: aggiungerne o toglierne
-   ridistribuisce l'altezza da sola, senza toccare il CSS. */
+/* Lines are distributed by space-between: add or remove one and the height
+   redistributes automatically, without a CSS change. */
 .review-lines {
   display: flex;
   flex-direction: column;
@@ -383,7 +379,7 @@ html, body {
   margin-top: 3mm;
 }
 
-/* — 05 · punteggio ——————————————————————————————————————————————————— */
+/* — 05 · score —————————————————————————————————————————————————————— */
 .score {
   display: flex;
   align-items: center;
@@ -422,12 +418,11 @@ html, body {
 .change .label { opacity: 0.7; }
 .change .fill { flex: 1; height: 5mm; }
 
-/* — scarica il PDF (schermo, mai in stampa) ——————————————————————————
-   Zero JavaScript: un <a download> statico verso l'esempio pre-generato
-   in examples/. Sta fuori da .sheet apposta, così non tocca nessuna
-   delle misure verificate in AGENTS.md §5. Nascosto in @media print
-   perché non deve comparire né sulla carta né in un export PDF del
-   foglio stesso — è un affordance dell'interfaccia, non contenuto. */
+/* — download PDF (screen only, never printed) ————————————————————————
+   No JavaScript: a static <a download> link to the pre-rendered example in
+   examples/. It deliberately lives outside .sheet, so it cannot affect the
+   AGENTS.md §5 measurements. Hidden in @media print because it is interface
+   affordance, not sheet content. */
 .dl-pdf {
   position: fixed;
   right: 20px;
@@ -467,24 +462,24 @@ html, body {
 
     <div class="tearline mono">
       <div class="dash"></div>
-      <span>· strappa qui ·</span>
+      <span>· tear here ·</span>
       <div class="dash"></div>
     </div>
 
-    <!-- ══ TESTATA — titolo e intestazione ══════════════════════════════ -->
+    <!-- ══ MASTHEAD — title and identity fields ═════════════════════════ -->
     <header class="masthead">
       <div>
-        <div class="masthead-kicker mono">canvas per una routine reale — non un tracker</div>
-        <h1 class="display">La Settimana Possibile</h1>
-        <p class="masthead-sub">Si pianifica prima, si fa il consuntivo dopo. Stesso foglio, sette giorni, una penna.</p>
+        <div class="masthead-kicker mono">a canvas for a real routine — not a tracker</div>
+        <h1 class="display">The Week That Fits</h1>
+        <p class="masthead-sub">Plan first, review later. One sheet, seven days, one pen.</p>
       </div>
       <div class="identity mono">
         <div class="identity-row">
-          <span>Nome</span>
+          <span>Name</span>
           <span class="fill rule-dotted"></span>
         </div>
         <div class="identity-row">
-          <span>Settimana</span>
+          <span>Week</span>
           <span class="fill-short rule-dotted"></span>
           <span>/ 52</span>
         </div>
@@ -492,185 +487,184 @@ html, body {
     </header>
 
     <!-- ══ 01 · BASELINE ════════════════════════════════════════════════
-         Quattro riquadri fissi. Il primo è verde (protetto), il terzo
-         rosso (limite): sono i due poli che rendono realistico il resto. -->
+         Four fixed boxes. The first is green (protected), the third red
+         (limit): the two poles that keep the rest realistic. -->
     <div class="section-label mono">
       <span class="num">01</span>
-      <span>Baseline — realismo su impegni e obiettivi</span>
+      <span>Baseline — commitments and goals, realistically</span>
       <span class="trail"></span>
     </div>
 
     <div class="baseline-grid">
       <div class="tile tile-protected">
-        <div class="tile-kicker mono">non negoziabile</div>
-        <div class="tile-title display">Protetto</div>
-        <div class="tile-note">Famiglia &amp; impegni fissi</div>
+        <div class="tile-kicker mono">non-negotiable</div>
+        <div class="tile-title display">Protected</div>
+        <div class="tile-note">Family &amp; fixed commitments</div>
         <div class="tile-fill"></div>
       </div>
       <div class="tile">
-        <div class="tile-kicker mono">tempo disponibile</div>
-        <div class="tile-title display">Finestre</div>
-        <div class="tile-note">Dove vive il tempo</div>
+        <div class="tile-kicker mono">available time</div>
+        <div class="tile-title display">Windows</div>
+        <div class="tile-note">Where the time lives</div>
         <div class="tile-fill"></div>
       </div>
       <div class="tile tile-limit">
-        <div class="tile-kicker mono">limite</div>
-        <div class="tile-title display">Not to do</div>
-        <div class="tile-note">Questa settimana evito</div>
+        <div class="tile-kicker mono">limit</div>
+        <div class="tile-title display">Not-to-do</div>
+        <div class="tile-note">What I avoid this week</div>
         <div class="tile-fill"></div>
       </div>
       <div class="tile">
-        <div class="tile-kicker mono">intenzione</div>
+        <div class="tile-kicker mono">intention</div>
         <div class="tile-title display">Focus</div>
-        <div class="tile-note">L'intenzione della settimana</div>
+        <div class="tile-note">This week's intention</div>
         <div class="tile-fill"></div>
       </div>
     </div>
 
-    <!-- ══ 02 · LE QUATTRO ROTTE ════════════════════════════════════════
-         ▼ PERSONALIZZA QUI — questi sono i tuoi ambiti.
-         ATTENZIONE: ogni nome compare DUE volte nel documento, qui e
-         nella riga corrispondente del log (sezione 03). Cambiali sempre
-         in coppia, altrimenti il foglio si contraddice.
-         Vedi docs/PERSONALIZZA.md § "Rinominare le rotte". -->
+    <!-- ══ 02 · THE FOUR ROUTES ═════════════════════════════════════════
+         ▼ CUSTOMISE HERE — these are your life areas.
+         WARNING: each name appears TWICE, here and in its matching log row
+         (section 03). Always change the pair, or the sheet contradicts itself.
+         See docs/CUSTOMIZE.md § “Rename a route”. -->
     <div class="section-label mono">
       <span class="num">02</span>
-      <span>Obiettivi per ambito</span>
+      <span>Goals by area</span>
       <span class="trail"></span>
     </div>
 
     <div class="routes-grid">
       <div class="route">
-        <div class="route-kicker mono">rotta 01</div>
+        <div class="route-kicker mono">route 01</div>
         <div class="route-head">
-          <span class="route-name display">Musica</span>
+          <span class="route-name display">Music</span>
           <span class="route-tag mono">Hobby</span>
         </div>
         <div class="route-divider"></div>
         <div class="route-field">
-          <span class="label mono">Traguardo della settimana</span>
+          <span class="label mono">Weekly target</span>
           <span class="fill rule-dotted"></span>
         </div>
         <div class="route-field">
-          <span class="label mono">Quando</span>
+          <span class="label mono">When</span>
           <span class="fill rule-dotted"></span>
         </div>
         <div class="route-field">
-          <span class="label mono">Rituale d'inizio, 60 sec</span>
-          <span class="fill rule-dotted"></span>
-        </div>
-      </div>
-
-      <div class="route">
-        <div class="route-kicker mono">rotta 02</div>
-        <div class="route-head">
-          <span class="route-name display">Progetti</span>
-          <span class="route-tag mono">Extra, più di un hobby</span>
-        </div>
-        <div class="route-divider"></div>
-        <div class="route-field">
-          <span class="label mono">Traguardo della settimana</span>
-          <span class="fill rule-dotted"></span>
-        </div>
-        <div class="route-field">
-          <span class="label mono">Quando</span>
-          <span class="fill rule-dotted"></span>
-        </div>
-        <div class="route-field">
-          <span class="label mono">Rituale d'inizio, 60 sec</span>
+          <span class="label mono">Starting ritual, 60 sec</span>
           <span class="fill rule-dotted"></span>
         </div>
       </div>
 
       <div class="route">
-        <div class="route-kicker mono">rotta 03</div>
+        <div class="route-kicker mono">route 02</div>
         <div class="route-head">
-          <span class="route-name display">Studio</span>
-          <span class="route-tag mono">Università</span>
+          <span class="route-name display">Projects</span>
+          <span class="route-tag mono">Extra, more than a hobby</span>
         </div>
         <div class="route-divider"></div>
         <div class="route-field">
-          <span class="label mono">Traguardo della settimana</span>
+          <span class="label mono">Weekly target</span>
           <span class="fill rule-dotted"></span>
         </div>
         <div class="route-field">
-          <span class="label mono">Quando</span>
+          <span class="label mono">When</span>
           <span class="fill rule-dotted"></span>
         </div>
         <div class="route-field">
-          <span class="label mono">Rituale d'inizio, 60 sec</span>
+          <span class="label mono">Starting ritual, 60 sec</span>
           <span class="fill rule-dotted"></span>
         </div>
       </div>
 
       <div class="route">
-        <div class="route-kicker mono">rotta 04</div>
+        <div class="route-kicker mono">route 03</div>
         <div class="route-head">
-          <span class="route-name display">Proattività</span>
-          <span class="route-tag mono">Sport, cultura, lettura</span>
+          <span class="route-name display">Study</span>
+          <span class="route-tag mono">University</span>
         </div>
         <div class="route-divider"></div>
         <div class="route-field">
-          <span class="label mono">Traguardo della settimana</span>
+          <span class="label mono">Weekly target</span>
           <span class="fill rule-dotted"></span>
         </div>
         <div class="route-field">
-          <span class="label mono">Quando</span>
+          <span class="label mono">When</span>
           <span class="fill rule-dotted"></span>
         </div>
         <div class="route-field">
-          <span class="label mono">Rituale d'inizio, 60 sec</span>
+          <span class="label mono">Starting ritual, 60 sec</span>
+          <span class="fill rule-dotted"></span>
+        </div>
+      </div>
+
+      <div class="route">
+        <div class="route-kicker mono">route 04</div>
+        <div class="route-head">
+          <span class="route-name display">Initiative</span>
+          <span class="route-tag mono">Sport, culture, reading</span>
+        </div>
+        <div class="route-divider"></div>
+        <div class="route-field">
+          <span class="label mono">Weekly target</span>
+          <span class="fill rule-dotted"></span>
+        </div>
+        <div class="route-field">
+          <span class="label mono">When</span>
+          <span class="fill rule-dotted"></span>
+        </div>
+        <div class="route-field">
+          <span class="label mono">Starting ritual, 60 sec</span>
           <span class="fill rule-dotted"></span>
         </div>
       </div>
     </div>
 
     <!-- ══ 03 · LOG ═════════════════════════════════════════════════════
-         Sei righe: le quattro rotte (contate) più famiglia e not-to-do
-         (spuntate). ▼ I nomi 01-04 devono combaciare con la sezione 02. -->
+         Six rows: four routes (counted), plus family and not-to-do (ticked).
+         ▼ Names 01–04 must match section 02. -->
     <div class="log">
       <div class="log-head">
         <span class="log-title">
           <span class="num mono">03</span>
-          <span class="text display">Log delle attività reali</span>
+          <span class="text display">What actually happened</span>
         </span>
-        <span class="log-hint mono">segna ogni sera — cosa è successo davvero, non un voto</span>
+        <span class="log-hint mono">mark each evening — events, not grades</span>
       </div>
 
       <div class="log-days mono">
         <div class="col-label"></div>
-        <div class="col-day">Lun</div>
-        <div class="col-day">Mar</div>
-        <div class="col-day">Mer</div>
-        <div class="col-day">Gio</div>
-        <div class="col-day">Ven</div>
-        <div class="col-day">Sab</div>
-        <div class="col-day">Dom</div>
-        <div class="col-total">Tot</div>
+        <div class="col-day">Mon</div>
+        <div class="col-day">Tue</div>
+        <div class="col-day">Wed</div>
+        <div class="col-day">Thu</div>
+        <div class="col-day">Fri</div>
+        <div class="col-day">Sat</div>
+        <div class="col-day">Sun</div>
+        <div class="col-total">Total</div>
       </div>
 
       <div class="log-row">
-        <div class="col-label"><span class="num mono">01</span><span class="text">Musica</span></div>
+        <div class="col-label"><span class="num mono">01</span><span class="text">Music</span></div>
         <div class="col-day"></div><div class="col-day"></div><div class="col-day"></div><div class="col-day"></div><div class="col-day"></div><div class="col-day"></div><div class="col-day"></div>
         <div class="col-total"></div>
       </div>
       <div class="log-row">
-        <div class="col-label"><span class="num mono">02</span><span class="text">Progetti</span></div>
+        <div class="col-label"><span class="num mono">02</span><span class="text">Projects</span></div>
         <div class="col-day"></div><div class="col-day"></div><div class="col-day"></div><div class="col-day"></div><div class="col-day"></div><div class="col-day"></div><div class="col-day"></div>
         <div class="col-total"></div>
       </div>
       <div class="log-row">
-        <div class="col-label"><span class="num mono">03</span><span class="text">Studio</span></div>
+        <div class="col-label"><span class="num mono">03</span><span class="text">Study</span></div>
         <div class="col-day"></div><div class="col-day"></div><div class="col-day"></div><div class="col-day"></div><div class="col-day"></div><div class="col-day"></div><div class="col-day"></div>
         <div class="col-total"></div>
       </div>
       <div class="log-row">
-        <div class="col-label"><span class="num mono">04</span><span class="text">Proattività</span></div>
+        <div class="col-label"><span class="num mono">04</span><span class="text">Initiative</span></div>
         <div class="col-day"></div><div class="col-day"></div><div class="col-day"></div><div class="col-day"></div><div class="col-day"></div><div class="col-day"></div><div class="col-day"></div>
         <div class="col-total"></div>
       </div>
       <div class="log-row log-row-protected">
-        <div class="col-label"><span class="num mono">05</span><span class="text">Famiglia ✓</span></div>
+        <div class="col-label"><span class="num mono">05</span><span class="text">Family ✓</span></div>
         <div class="col-day"></div><div class="col-day"></div><div class="col-day"></div><div class="col-day"></div><div class="col-day"></div><div class="col-day"></div><div class="col-day"></div>
         <div class="col-total"></div>
       </div>
@@ -680,28 +674,28 @@ html, body {
         <div class="col-total"></div>
       </div>
 
-      <!-- ▼ PERSONALIZZA — il tuo alfabeto di simboli. L'ultima casella
-           vuota serve a inventarne uno a mano, sul foglio stampato. -->
+      <!-- ▼ CUSTOMISE — your symbol alphabet. The final blank box is for a
+           symbol you invent by hand on the printed sheet. -->
       <div class="legend mono">
-        <span class="legend-title">legenda</span>
-        <span class="legend-item"><span class="glyph">⚡</span>fatto con slancio</span>
-        <span class="legend-item"><span class="glyph">🌱</span>piccolo passo</span>
-        <span class="legend-item"><span class="glyph">🎯</span>traguardo centrato</span>
-        <span class="legend-item"><span class="glyph">🌀</span>rimandato</span>
-        <span class="legend-item"><span class="glyph">🧱</span>bloccato</span>
-        <span class="legend-item"><span class="glyph">✕</span>salto</span>
+        <span class="legend-title">legend</span>
+        <span class="legend-item"><span class="glyph">✓</span>done</span>
+        <span class="legend-item"><span class="glyph">•</span>step</span>
+        <span class="legend-item"><span class="glyph">★</span>target</span>
+        <span class="legend-item"><span class="glyph">→</span>postponed</span>
+        <span class="legend-item"><span class="glyph">!</span>blocked</span>
+        <span class="legend-item"><span class="glyph">×</span>skipped</span>
         <span class="legend-custom">
           <span class="box"></span>
           <span class="fill rule-dotted"></span>
-          <span class="caption">emoji tua</span>
+          <span class="caption">your mark</span>
         </span>
       </div>
     </div>
 
-    <!-- ══ 04 · CONSUNTIVO ══════════════════════════════════════════════ -->
+    <!-- ══ 04 · REVIEW ══════════════════════════════════════════════════ -->
     <div class="section-label mono">
       <span class="num">04</span>
-      <span>Consuntivo — cosa dice il log</span>
+      <span>Review — what the log says</span>
       <span class="trail"></span>
     </div>
 
@@ -709,10 +703,9 @@ html, body {
       <div class="review">
         <div class="review-head">
           <span class="num mono">01</span>
-          <span class="text display">Cosa è andato bene</span>
+          <span class="text display">What went well</span>
         </div>
         <div class="review-lines">
-          <div class="rule-dotted"></div>
           <div class="rule-dotted"></div>
           <div class="rule-dotted"></div>
           <div class="rule-dotted"></div>
@@ -722,10 +715,9 @@ html, body {
       <div class="review">
         <div class="review-head">
           <span class="num mono">02</span>
-          <span class="text display">Cosa è andato storto</span>
+          <span class="text display">What went wrong</span>
         </div>
         <div class="review-lines">
-          <div class="rule-dotted"></div>
           <div class="rule-dotted"></div>
           <div class="rule-dotted"></div>
           <div class="rule-dotted"></div>
@@ -734,12 +726,12 @@ html, body {
       </div>
     </div>
 
-    <!-- ══ 05 · PUNTEGGIO ═══════════════════════════════════════════════ -->
+    <!-- ══ 05 · SCORE ═══════════════════════════════════════════════════ -->
     <div class="score">
       <div class="score-title">
         <span class="num mono">05</span>
-        <span class="text display">Punteggio settimana</span>
-        <span class="hint mono">cerchia un numero</span>
+        <span class="text display">Weekly score</span>
+        <span class="hint mono">circle one number</span>
       </div>
       <div class="score-scale mono">
         <span class="box">0</span>
@@ -755,12 +747,12 @@ html, body {
         <span class="box box-max">10</span>
       </div>
       <div class="mood mono">
-        <span class="label">umore della settimana</span>
+        <span class="label">weekly mood</span>
         <span class="faces">😄 🙂 😐 😕 😵</span>
         <span class="box"></span>
       </div>
       <div class="change mono">
-        <span class="label">una cosa che cambio</span>
+        <span class="label">one thing I change</span>
         <span class="fill rule-dotted"></span>
       </div>
     </div>
@@ -768,11 +760,11 @@ html, body {
   </div>
 </section>
 
-<!-- Fuori da .sheet apposta: non conta nelle misure di AGENTS.md §5 e
-     sparisce da sola in stampa (.dl-pdf { display:none } in @media print).
-     Rigenera examples/la-settimana-possibile.pdf se il foglio cambia. -->
-<a class="dl-pdf" href="examples/la-settimana-possibile.pdf" download>
-  ⬇ Scarica il PDF (A3, vuoto)
+<!-- Outside .sheet by design: it does not count in AGENTS.md §5 measurements
+     and disappears in print (.dl-pdf { display:none } in @media print).
+     Regenerate examples/the-week-that-fits.pdf when the sheet changes. -->
+<a class="dl-pdf" href="examples/the-week-that-fits.pdf" download>
+  ⬇ Download the PDF (A3, blank)
 </a>
 </body>
 </html>

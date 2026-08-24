@@ -1,7 +1,5 @@
 # Making it yours
 
-🇮🇹 [Questa guida in italiano](PERSONALIZZA.md)
-
 Everything is in `index.html`. There are only two places you ever edit:
 
 1. the **`:root` block** at the top of the `<style>` — colours, fonts, geometry;
@@ -29,7 +27,7 @@ places and they must agree:
 
 ```html
 <div class="route-head">
-  <span class="route-name display">Musica</span>          <!-- ← your area -->
+  <span class="route-name display">Music</span>           <!-- ← your area -->
   <span class="route-tag mono">Hobby</span>               <!-- ← a short gloss -->
 </div>
 ```
@@ -39,19 +37,19 @@ places and they must agree:
 ```html
 <div class="col-label">
   <span class="num mono">01</span>
-  <span class="text">Musica</span>                        <!-- ← must match A -->
+  <span class="text">Music</span>                         <!-- ← must match A -->
 </div>
 ```
 
-The shipped four are `Musica` (Hobby), `Progetti` (Extra, più di un hobby),
-`Studio` (Università), `Proattività` (Sport, cultura, lettura). Pick four areas
+The shipped four are `Music` (Hobby), `Projects` (Extra, more than a hobby),
+`Study` (University), `Initiative` (Sport, culture, reading). Pick four areas
 that are genuinely distinct for you — four flavours of "work" will make the log
 useless, because you will not know which column to mark.
 
-**Rows 05 and 06 are not routes.** `Famiglia ✓` is the protected row and
+**Rows 05 and 06 are not routes.** `Family ✓` is the protected row and
 `Not-to-do ✓` is the limit row. They have no card in section 02, they carry no
 target, and they keep their `log-row-protected` / `log-row-limit` classes. You
-can rename `Famiglia` to whatever your non-negotiable is, but keep it a
+can rename `Family` to whatever your non-negotiable is, but keep it a
 constraint — do not give it a target.
 
 ### The baseline boxes
@@ -61,9 +59,9 @@ actually think:
 
 ```html
 <div class="tile tile-protected">
-  <div class="tile-kicker mono">non negoziabile</div>
-  <div class="tile-title display">Protetto</div>
-  <div class="tile-note">Famiglia &amp; impegni fissi</div>   <!-- ← yours -->
+  <div class="tile-kicker mono">non-negotiable</div>
+  <div class="tile-title display">Protected</div>
+  <div class="tile-note">Family &amp; fixed commitments</div> <!-- ← yours -->
   <div class="tile-fill"></div>
 </div>
 ```
@@ -76,21 +74,22 @@ Those two poles are what make the rest of the sheet realistic.
 Section 03, `.legend`. Six symbols and one blank box:
 
 ```html
-<span class="legend-item"><span class="glyph">⚡</span>fatto con slancio</span>
+<span class="legend-item"><span class="glyph">✓</span>done</span>
 ```
 
-Change the emoji, change the labels. **Six items is what fits** — a seventh
+Change the symbols, change the labels. Simple marks that can be drawn by hand
+in the log work best. **Six items is what fits** — a seventh
 squeezes the trailing dotted line to nothing. Keep the final `legend-custom`
 block: the empty box is where you invent a symbol by hand, on paper.
 
-Resist turning these into a scoring scale. `🧱 blocked` and `✕ skipped` are
+Resist turning these into a scoring scale. `! blocked` and `× skipped` are
 different *facts*, and that difference is the whole point of the log.
 
 ### The header
 
 ```html
-<h1 class="display">La Settimana Possibile</h1>
-<p class="masthead-sub">Si pianifica prima, si fa il consuntivo dopo. …</p>
+<h1 class="display">The Week That Fits</h1>
+<p class="masthead-sub">Plan first, review later. …</p>
 ```
 
 The `/ 52` next to the week field assumes you number weeks across the year.
@@ -194,26 +193,25 @@ The four corner marks are for trimming the sheet to true size. To hide them:
 <body class="no-fiducials">
 ```
 
-Same for the `· strappa qui ·` tear line — delete the `.tearline` block if you
+Same for the `· tear here ·` tear line — delete the `.tearline` block if you
 are not tearing anything.
 
 ---
 
 ## 5. Translate it
 
-The sheet is Italian. If you translate, **translate all of it** — a half-Italian
-sheet reads like a bug. The strings, in document order: the tear line, the
-masthead kicker / title / subtitle, `Nome` and `Settimana`, the four section
-labels `01`–`04`, the baseline tiles, the route fields (`Traguardo della
-settimana`, `Quando`, `Rituale d'inizio, 60 sec`), the log heading and hint, the
-day abbreviations `Lun…Dom` and `Tot`, the legend, the two review titles, and
-the score row (`Punteggio settimana`, `cerchia un numero`, `umore della
-settimana`, `una cosa che cambio`).
+The source sheet is English. If you translate, **translate all of it** — a
+half-translated sheet reads like a bug. The strings, in document order: the tear
+line, masthead kicker / title / subtitle, `Name` and `Week`, the four section
+labels `01`–`04`, baseline tiles, route fields (`Weekly target`, `When`,
+`Starting ritual, 60 sec`), log heading and hint, day abbreviations `Mon…Sun`
+and `Total`, the legend, the two review titles, and the score row (`Weekly
+score`, `circle one number`, `weekly mood`, `one thing I change`).
 
-Also update `<html lang="it">` and the `<title>`.
+Also update `<html lang="en">` and the `<title>`.
 
 Watch the widths: the mono labels are set in a fixed 34 mm column and in
-fixed-width fields. German and Finnish will overrun where Italian fits — check
+fixed-width fields. German and Finnish may overrun where English fits — check
 with [§7](#7-check-your-work) rather than assuming.
 
 ---
@@ -290,7 +288,7 @@ section 03. Update both and keep the order aligned. Do not touch rows 05
 ```
 Read AGENTS.md first. Translate every user-visible string in index.html to
 <language>, including the tear line, day abbreviations and legend — leave
-nothing in Italian. Update <html lang> and <title>. Then run the AGENTS.md §5
+nothing in the source language. Update <html lang> and <title>. Then run the AGENTS.md §5
 verification and confirm no label overflows its column.
 ```
 

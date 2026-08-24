@@ -1,8 +1,8 @@
-# La Settimana Possibile
+# The Week That Fits
 
 **A weekly planner that fits on one sheet of paper. You fill it in with a pen.**
 
-🇮🇹 [Leggimi in italiano](README.it.md) · 🤖 [Agent instructions](AGENTS.md) · 🎨 [Customization guide](docs/CUSTOMIZE.md)
+🤖 [Agent instructions](AGENTS.md) · 🎨 [Customization guide](docs/CUSTOMIZE.md) · 🤖 [Claude instructions](CLAUDE.md)
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
 
@@ -19,7 +19,7 @@ no streaks, no notifications.
 It is a single self-contained `index.html`. No build step, no dependencies, no
 JavaScript. Open it in a browser, press `Ctrl+P`, print.
 
-The sheet ships in **Italian**, with the author's own four life areas already
+The sheet ships in **English**, with the author's own four life areas already
 filled in. That is deliberate: a template full of `Category 01` placeholders
 teaches you nothing about how it is meant to be used. Replacing them with yours
 is the first thing you should do — see [docs/CUSTOMIZE.md](docs/CUSTOMIZE.md).
@@ -38,13 +38,14 @@ Five blocks, in the order you use them:
 | **02** | **Goals by area** | Monday | Four "routes" — your life areas. Each gets a weekly target, a *when*, and a 60-second starting ritual. |
 | **03** | **Log** | Every evening | 7 days × 6 rows. You mark what actually happened with symbols, not scores. Takes about twenty seconds. |
 | **04** | **Review** | Sunday | What went well, what went wrong — read off the log, not off your mood. |
-| **05** | **Score** | Sunday | One number 0–10, one emoji for the week, and one thing you change. |
+| **05** | **Score** | Sunday | One number 0–10, one mood mark for the week, and one thing you change. |
 
 Three details that carry most of the weight:
 
-- **The log records events, not grades.** ⚡ *done with momentum*, 🌱 *small
-  step*, 🎯 *target hit*, 🌀 *postponed*, 🧱 *blocked*, ✕ *skipped*. "Blocked"
-  and "skipped" are different facts and the difference is the useful part.
+- **The log records events, not grades.** ✓ *done*, • *step*, ★ *target*,
+  → *postponed*, ! *blocked*, × *skipped*. These simple marks are easy to
+  repeat by hand in the table. "Blocked" and "skipped" are different facts and
+  the difference is the useful part.
   There is a blank box at the end of the legend to invent your own symbol.
 - **The protected row is ticked, not counted.** Family is row 05, on a green
   background, with no target. It is a constraint, not a KPI — the moment you
@@ -54,7 +55,7 @@ Three details that carry most of the weight:
 
 ## Print it
 
-Open `index.html` in a browser and press `Ctrl+P`. A small **"Scarica PDF"**
+Open `index.html` in a browser and press `Ctrl+P`. A small **"Download PDF"**
 button sits in the bottom-right corner of the on-screen view — it links to a
 pre-rendered, empty copy in `examples/`, for anyone who wants the file without
 generating it themselves. No JavaScript involved: it is a static download link
@@ -102,7 +103,7 @@ Everything lives in one file, in two places:
 - the **HTML body** — the four routes, the legend symbols, the labels.
 
 Full instructions, written for both humans and coding agents:
-**[docs/CUSTOMIZE.md](docs/CUSTOMIZE.md)** · 🇮🇹 **[docs/PERSONALIZZA.md](docs/PERSONALIZZA.md)**
+**[docs/CUSTOMIZE.md](docs/CUSTOMIZE.md)**
 
 If you are pointing an AI coding agent at this repository, start it on
 **[AGENTS.md](AGENTS.md)** — it carries the hard constraints and the
@@ -114,16 +115,15 @@ verification procedure that keeps the sheet exactly A3.
 .
 ├── index.html          ← the sheet. The only file that matters. Self-contained.
 ├── AGENTS.md           ← rules and verification steps for AI coding agents
+├── CLAUDE.md           ← concise instructions for Claude Code
 ├── README.md           ← this file (English)
-├── README.it.md        ← Italian
 ├── LICENSE             ← AGPL-3.0
 ├── docs/
 │   ├── CUSTOMIZE.md    ← how to make it yours (English)
-│   ├── PERSONALIZZA.md ← how to make it yours (Italian)
 │   └── preview.png     ← rendered sheet
 └── examples/
-    └── la-settimana-possibile.pdf   ← empty, pre-rendered — same file the
-                                        on-screen "Scarica PDF" button serves
+    └── the-week-that-fits.pdf       ← empty, pre-rendered — same file the
+                                        on-screen "Download PDF" button serves
 ```
 
 ## Inspiration

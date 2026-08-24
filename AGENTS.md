@@ -54,9 +54,9 @@ Violating any of these is a regression, even if the page still looks fine.
      on paper than on screen — that difference is intended.
 7. **Colours and geometry go through the `:root` custom properties.** If you
    need a new colour, add a token; do not hard-code a hex value in a rule.
-8. **Keep the sheet monolingual.** It ships in Italian. If asked to translate,
+8. **Keep the sheet monolingual.** It ships in English. If asked to translate,
    translate *all* user-visible strings, including the tear line, the legend and
-   the column headings. Do not leave a half-Italian sheet.
+   the column headings. Do not leave a half-translated sheet.
 9. **`examples/*.pdf` is a generated artefact, not something to hand-edit.**
    See §6a — regenerate it, never open it in a PDF editor.
 
@@ -67,11 +67,11 @@ Violating any of these is a regression, even if the page still looks fine.
 | Path | Status | Notes |
 |---|---|---|
 | `index.html` | **the source of truth** | Edit this. It is the product. |
-| `README.md`, `README.it.md` | edit in pairs | Any user-facing change must land in **both** languages. Never update one alone. |
-| `docs/CUSTOMIZE.md`, `docs/PERSONALIZZA.md` | edit in pairs | Same rule. |
+| `README.md` | user-facing project overview | Update it when user-facing behaviour changes. |
+| `docs/CUSTOMIZE.md` | customization guide | Update it when customization behaviour changes. |
 | `docs/preview.png` | regenerate | Stale after any visual change — see §6. |
 | `examples/*.pdf` | regenerate | Generated from `index.html` — see §6a. Never hand-edit a PDF. |
-| `AGENTS.md` | edit deliberately | This file. |
+| `AGENTS.md`, `CLAUDE.md` | edit deliberately | Agent instructions; keep their shared constraints aligned. |
 | `LICENSE` | **do not edit** | Verbatim AGPL-3.0 text from the FSF. |
 
 There is no `design-source/` in this repository. Earlier drafts kept the
@@ -113,7 +113,7 @@ appears **twice**, and the two must always match:
    `<span class="text">` inside its `.col-label`
 
 Rows 01–04 of the log are the four routes, in the same order as the cards. Rows
-05 (`Famiglia ✓`) and 06 (`Not-to-do ✓`) are *not* routes — they are the
+05 (`Family ✓`) and 06 (`Not-to-do ✓`) are *not* routes — they are the
 protected and limit rows, they carry no target, and they must keep their
 `log-row-protected` / `log-row-limit` classes.
 
@@ -122,7 +122,7 @@ After renaming, re-read both sections and confirm the order still lines up.
 ### 4.3 Change the legend symbols
 
 Search `class="legend"`. Each item is
-`<span class="legend-item"><span class="glyph">EMOJI</span>label</span>`.
+`<span class="legend-item"><span class="glyph">SYMBOL</span>label</span>`.
 
 Keep the trailing `legend-custom` block — the empty box plus dotted line is
 where a user invents their own symbol by hand. It is a feature, not filler.
@@ -236,7 +236,7 @@ screenshot of the browser window with chrome and scrollbars — capture the
 
 ## 6a. Regenerating the example PDF
 
-`examples/la-settimana-possibile.pdf` goes stale after any change to
+`examples/the-week-that-fits.pdf` goes stale after any change to
 `index.html`'s layout or content — it is a rendered snapshot, not hand-authored.
 Regenerate it with Playwright, forcing print media so the ink-saving default
 (§2 rule 6) actually applies:
@@ -245,7 +245,7 @@ Regenerate it with Playwright, forcing print media so the ink-saving default
 await page.goto('http://127.0.0.1:8080/index.html');
 await page.emulateMedia({ media: 'print' });
 await page.pdf({
-  path: 'examples/la-settimana-possibile.pdf',
+  path: 'examples/the-week-that-fits.pdf',
   width: '420mm', height: '297mm',
   printBackground: true,
   margin: { top: 0, right: 0, bottom: 0, left: 0 },
@@ -271,7 +271,8 @@ template.
 - If a change touches `index.html` visually, the same commit should refresh
   `docs/preview.png`.
 - **Never** commit a change to `index.html` that has not passed §5.
-- Do not add files to the repository root. New documentation goes in `docs/`.
+- Do not add files to the repository root, except recognised agent-instruction
+  files such as `AGENTS.md` and `CLAUDE.md`. New human documentation goes in `docs/`.
 
 ## 8. Definition of done
 
@@ -279,10 +280,10 @@ template.
 - [ ] print preview reports exactly 1 page
 - [ ] no new files, dependencies, JS, or build steps introduced
 - [ ] route names still match between section 02 and the log in section 03
-- [ ] both `README.md` and `README.it.md` updated, if user-facing behaviour changed
-- [ ] both `docs/CUSTOMIZE.md` and `docs/PERSONALIZZA.md` updated, if customization changed
+- [ ] `README.md` updated, if user-facing behaviour changed
+- [ ] `docs/CUSTOMIZE.md` updated, if customization changed
 - [ ] `docs/preview.png` regenerated, if the sheet looks different
-- [ ] `examples/la-settimana-possibile.pdf` regenerated (§6a), if `index.html`'s
+- [ ] `examples/the-week-that-fits.pdf` regenerated (§6a), if `index.html`'s
       layout or content changed
 - [ ] no personal/filled-in data ever committed to `examples/`
 
