@@ -56,7 +56,12 @@ Tre dettagli che reggono quasi tutto il peso:
 
 ## Stamparlo
 
-Apri `index.html` nel browser e premi `Ctrl+P`.
+Apri `index.html` nel browser e premi `Ctrl+P`. In basso a destra
+nell'anteprima a schermo c'è un piccolo pulsante **"Scarica PDF"**: punta a una
+copia pre-renderizzata e vuota dentro `examples/`, per chi lo vuole senza
+generarselo da sé. Nessun JavaScript coinvolto: è un link di download statico
+che sparisce da solo in stampa (`@media print`), quindi non compare mai sul
+foglio stesso.
 
 | Voce | Valore |
 | --- | --- |
@@ -109,7 +114,7 @@ che tiene il foglio esattamente in A3.
 
 ## Struttura della repository
 
-```
+```text
 .
 ├── index.html          ← il foglio. L'unico file che conta. Autonomo.
 ├── AGENTS.md           ← regole e verifiche per gli agenti AI
@@ -120,15 +125,10 @@ che tiene il foglio esattamente in A3.
 │   ├── CUSTOMIZE.md    ← come farlo tuo (inglese)
 │   ├── PERSONALIZZA.md ← come farlo tuo (italiano)
 │   └── preview.png     ← il foglio renderizzato
-└── design-source/      ← SOLA LETTURA. Il mock originale di Claude Design.
-    ├── HANDOFF.md              il readme dell'export
-    ├── La Settimana Possibile.dc.html
-    ├── doc-page.js, support.js il runtime dello strumento di design
-    └── _ds/                    il design system "modernist" di partenza
+└── examples/
+    └── la-settimana-possibile.pdf   ← vuoto, pre-renderizzato — lo stesso
+                                        file che serve il pulsante "Scarica PDF"
 ```
-
-`design-source/` è provenienza, non sorgente. Niente lì dentro viene caricato a
-runtime e niente lì dentro va modificato: la fonte di verità è `index.html`.
 
 ## Ispirazione
 

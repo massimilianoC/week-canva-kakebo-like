@@ -54,7 +54,12 @@ Three details that carry most of the weight:
 
 ## Print it
 
-Open `index.html` in a browser and press `Ctrl+P`.
+Open `index.html` in a browser and press `Ctrl+P`. A small **"Scarica PDF"**
+button sits in the bottom-right corner of the on-screen view — it links to a
+pre-rendered, empty copy in `examples/`, for anyone who wants the file without
+generating it themselves. No JavaScript involved: it is a static download link
+that hides itself when you print or export (`@media print`), so it never shows
+up on the sheet itself.
 
 | Setting | Value |
 | --- | --- |
@@ -105,7 +110,7 @@ verification procedure that keeps the sheet exactly A3.
 
 ## Repository layout
 
-```
+```text
 .
 ├── index.html          ← the sheet. The only file that matters. Self-contained.
 ├── AGENTS.md           ← rules and verification steps for AI coding agents
@@ -116,15 +121,10 @@ verification procedure that keeps the sheet exactly A3.
 │   ├── CUSTOMIZE.md    ← how to make it yours (English)
 │   ├── PERSONALIZZA.md ← how to make it yours (Italian)
 │   └── preview.png     ← rendered sheet
-└── design-source/      ← READ-ONLY. The original Claude Design mock-up.
-    ├── HANDOFF.md              the export's own readme
-    ├── La Settimana Possibile.dc.html
-    ├── doc-page.js, support.js the design tool's runtime
-    └── _ds/                    the "modernist" design system it was based on
+└── examples/
+    └── la-settimana-possibile.pdf   ← empty, pre-rendered — same file the
+                                        on-screen "Scarica PDF" button serves
 ```
-
-`design-source/` is provenance, not source. Nothing in it is loaded at runtime
-and nothing in it should ever be edited — `index.html` is the source of truth.
 
 ## Inspiration
 

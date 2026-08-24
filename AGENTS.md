@@ -26,9 +26,11 @@ tooling.**
 Violating any of these is a regression, even if the page still looks fine.
 
 1. **`index.html` stays self-contained.** One file. CSS inline in `<style>`.
-   No external stylesheet, no JS file, no image file, no icon font.
-   *The single permitted exception* is the Google Fonts `<link>` already in
-   `<head>`.
+   No external stylesheet, no JS file, no image file, no icon font. Two
+   permitted exceptions, both already present and both deliberate:
+   the Google Fonts `<link>` in `<head>`, and the `.dl-pdf` link in the
+   closing `<body>` — a plain `<a download>` to `examples/…pdf`, screen-only
+   (`display: none` in `@media print`, see rule 6). Do not add a third.
 2. **No JavaScript.** Not for interactivity, not for "progressive enhancement",
    not for a dark mode toggle. The sheet is paper.
 3. **No build step.** No `package.json`, no bundler, no CSS preprocessor, no
@@ -55,7 +57,8 @@ Violating any of these is a regression, even if the page still looks fine.
 8. **Keep the sheet monolingual.** It ships in Italian. If asked to translate,
    translate *all* user-visible strings, including the tear line, the legend and
    the column headings. Do not leave a half-Italian sheet.
-9. **`design-source/` is read-only.** See §3.
+9. **`examples/*.pdf` is a generated artefact, not something to hand-edit.**
+   See §6a — regenerate it, never open it in a PDF editor.
 
 ---
 
@@ -67,23 +70,19 @@ Violating any of these is a regression, even if the page still looks fine.
 | `README.md`, `README.it.md` | edit in pairs | Any user-facing change must land in **both** languages. Never update one alone. |
 | `docs/CUSTOMIZE.md`, `docs/PERSONALIZZA.md` | edit in pairs | Same rule. |
 | `docs/preview.png` | regenerate | Stale after any visual change — see §6. |
+| `examples/*.pdf` | regenerate | Generated from `index.html` — see §6a. Never hand-edit a PDF. |
 | `AGENTS.md` | edit deliberately | This file. |
 | `LICENSE` | **do not edit** | Verbatim AGPL-3.0 text from the FSF. |
-| `design-source/**` | **READ-ONLY** | |
 
-### About `design-source/`
-
-It holds the original [Claude Design](https://claude.ai/design) mock-up that
-`index.html` was reimplemented from: `La Settimana Possibile.dc.html` plus the
-design tool's runtime (`doc-page.js`, `support.js`) and the `_ds/` design system.
-
-**None of it is loaded at runtime. None of it should ever be edited.** It exists
-so a human can compare against the original intent.
-
-The trap: `La Settimana Possibile.dc.html` looks like source. It is not. It uses
-custom elements (`<x-dc>`, `<doc-page>`, `<sc-if>`) that only work inside the
-design tool. If a task says "change the sheet", the file you want is
-`index.html` in the repository root.
+There is no `design-source/` in this repository. Earlier drafts kept the
+original [Claude Design](https://claude.ai/design) mock-up as provenance, but
+its runtime files (`doc-page.js`, `support.js`) came from Anthropic's design
+tool with no license header of their own — redistributing them inside a repo
+whose top-level `LICENSE` is AGPL-3.0 was a real, not hypothetical, legal risk.
+They were removed for the public release. **Do not reintroduce a mock-up
+export, a design-tool runtime, or a bundled "design system" into this repo,**
+even as read-only reference material, without first confirming its licensing
+allows redistribution under `LICENSE`.
 
 ---
 
@@ -235,6 +234,34 @@ Serve the folder first (`python -m http.server 8080`). Do not commit a
 screenshot of the browser window with chrome and scrollbars — capture the
 `.sheet` element only.
 
+## 6a. Regenerating the example PDF
+
+`examples/la-settimana-possibile.pdf` goes stale after any change to
+`index.html`'s layout or content — it is a rendered snapshot, not hand-authored.
+Regenerate it with Playwright, forcing print media so the ink-saving default
+(§2 rule 6) actually applies:
+
+```js
+await page.goto('http://127.0.0.1:8080/index.html');
+await page.emulateMedia({ media: 'print' });
+await page.pdf({
+  path: 'examples/la-settimana-possibile.pdf',
+  width: '420mm', height: '297mm',
+  printBackground: true,
+  margin: { top: 0, right: 0, bottom: 0, left: 0 },
+  preferCSSPageSize: true,
+});
+```
+
+Verify the result before committing: exactly one `/Type/Page` in the PDF body,
+and a `/MediaBox` of `[0 0 1191.12 841.92]` pt (= 420 × 297 mm). A second page
+or a mismatched MediaBox means §5 was failing when you generated it — fix
+`index.html` first, regenerate after.
+
+The PDF ships **empty** — no personal data filled in. Never commit a PDF that
+contains a real filled-in week; that is someone's private planning data, not a
+template.
+
 ---
 
 ## 7. Commits and scope
@@ -255,7 +282,9 @@ screenshot of the browser window with chrome and scrollbars — capture the
 - [ ] both `README.md` and `README.it.md` updated, if user-facing behaviour changed
 - [ ] both `docs/CUSTOMIZE.md` and `docs/PERSONALIZZA.md` updated, if customization changed
 - [ ] `docs/preview.png` regenerated, if the sheet looks different
-- [ ] `design-source/` untouched
+- [ ] `examples/la-settimana-possibile.pdf` regenerated (§6a), if `index.html`'s
+      layout or content changed
+- [ ] no personal/filled-in data ever committed to `examples/`
 
 ## 9. License note
 
