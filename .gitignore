@@ -1,0 +1,22 @@
+# La Settimana Possibile — the project itself has no build output.
+# Everything below is local junk, not artefacts.
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*~
+
+# Tooling scratch (headless-browser runs, local servers)
+.playwright-mcp/
+node_modules/
+
+# Locally generated printouts. A release PDF, if you ever ship one,
+# should be attached to a GitHub Release rather than committed —
+# or force-added with: git add -f your-release.pdf
+*.pdf

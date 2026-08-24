@@ -1,0 +1,142 @@
+# La Settimana Possibile
+
+**A weekly planner that fits on one sheet of paper. You fill it in with a pen.**
+
+🇮🇹 [Leggimi in italiano](README.it.md) · 🤖 [Agent instructions](AGENTS.md) · 🎨 [Customization guide](docs/CUSTOMIZE.md)
+
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
+
+![The sheet](docs/preview.png)
+
+---
+
+## What it is
+
+One A3 landscape sheet (420 × 297 mm), one week, one pen. You plan on it at the
+start of the week and you close the loop on the same sheet at the end — no app,
+no streaks, no notifications.
+
+It is a single self-contained `index.html`. No build step, no dependencies, no
+JavaScript. Open it in a browser, press `Ctrl+P`, print.
+
+The sheet ships in **Italian**, with the author's own four life areas already
+filled in. That is deliberate: a template full of `Category 01` placeholders
+teaches you nothing about how it is meant to be used. Replacing them with yours
+is the first thing you should do — see [docs/CUSTOMIZE.md](docs/CUSTOMIZE.md).
+
+## The method
+
+The sheet is built around one idea: **a plan that ignores your real constraints
+is not a plan, it is a wish.** So the constraints come first, and the review
+comes from evidence rather than memory.
+
+Five blocks, in the order you use them:
+
+| # | Block | When | What it does |
+|---|-------|------|--------------|
+| **01** | **Baseline** | Monday | Four boxes: what is *protected* (family, fixed commitments), where your free *windows* actually are, your *not-to-do* for the week, and your *focus*. |
+| **02** | **Goals by area** | Monday | Four "routes" — your life areas. Each gets a weekly target, a *when*, and a 60-second starting ritual. |
+| **03** | **Log** | Every evening | 7 days × 6 rows. You mark what actually happened with symbols, not scores. Takes about twenty seconds. |
+| **04** | **Review** | Sunday | What went well, what went wrong — read off the log, not off your mood. |
+| **05** | **Score** | Sunday | One number 0–10, one emoji for the week, and one thing you change. |
+
+Three details that carry most of the weight:
+
+- **The log records events, not grades.** ⚡ *done with momentum*, 🌱 *small
+  step*, 🎯 *target hit*, 🌀 *postponed*, 🧱 *blocked*, ✕ *skipped*. "Blocked"
+  and "skipped" are different facts and the difference is the useful part.
+  There is a blank box at the end of the legend to invent your own symbol.
+- **The protected row is ticked, not counted.** Family is row 05, on a green
+  background, with no target. It is a constraint, not a KPI — the moment you
+  score it, you have started optimizing the wrong thing.
+- **The not-to-do row is ticked too.** Row 06, red. A week where you avoided
+  what you meant to avoid is a good week, even if the targets slipped.
+
+## Print it
+
+Open `index.html` in a browser and press `Ctrl+P`.
+
+| Setting | Value |
+|---|---|
+| Destination | *Save as PDF*, or your A3 printer |
+| Paper size | **A3** |
+| Orientation | **Landscape** |
+| Margins | **None** |
+| Scale | **Default / 100%** — *not* "Fit to printable area" |
+| Background graphics | **✅ on** |
+
+**Background graphics is the one people get wrong.** With it off you lose the
+paper tint, the green and red rows, and the dot grid — you get white with a few
+lines. The CSS already declares `print-color-adjust: exact`, but the browser
+checkbox still has the last word.
+
+An internet connection is needed on first load, for the three Google Fonts. Open
+it offline and the typography falls back to system fonts and the spacing drifts.
+
+**Printing on real paper:** the design is full-bleed — the paper tint runs to the
+edge of the 420 × 297 mm. No desktop A3 printer can do that; they all keep a
+3–5 mm mechanical margin. Print at 100 % and accept a white border: the corner
+crop marks are there so you can trim the sheet back to true size. Choosing "fit
+to page" instead shrinks everything by about 4 %, and the 6 pt labels go with it.
+
+## Customize it
+
+Everything lives in one file, in two places:
+
+- the **`:root` block** at the top of `index.html` — colours, fonts, paper size;
+- the **HTML body** — the four routes, the legend symbols, the labels.
+
+Full instructions, written for both humans and coding agents:
+**[docs/CUSTOMIZE.md](docs/CUSTOMIZE.md)** · 🇮🇹 **[docs/PERSONALIZZA.md](docs/PERSONALIZZA.md)**
+
+If you are pointing an AI coding agent at this repository, start it on
+**[AGENTS.md](AGENTS.md)** — it carries the hard constraints and the
+verification procedure that keeps the sheet exactly A3.
+
+## Repository layout
+
+```
+.
+├── index.html          ← the sheet. The only file that matters. Self-contained.
+├── AGENTS.md           ← rules and verification steps for AI coding agents
+├── README.md           ← this file (English)
+├── README.it.md        ← Italian
+├── LICENSE             ← AGPL-3.0
+├── docs/
+│   ├── CUSTOMIZE.md    ← how to make it yours (English)
+│   ├── PERSONALIZZA.md ← how to make it yours (Italian)
+│   └── preview.png     ← rendered sheet
+└── design-source/      ← READ-ONLY. The original Claude Design mock-up.
+    ├── HANDOFF.md              the export's own readme
+    ├── La Settimana Possibile.dc.html
+    ├── doc-page.js, support.js the design tool's runtime
+    └── _ds/                    the "modernist" design system it was based on
+```
+
+`design-source/` is provenance, not source. Nothing in it is loaded at runtime
+and nothing in it should ever be edited — `index.html` is the source of truth.
+
+## Where the design came from
+
+The sheet was mocked up in [Claude Design](https://claude.ai/design) as a
+`doc-page` prototype, then reimplemented by hand as a standalone print document:
+the design tool's runtime (`doc-page.js`, `support.js`, ~110 KB) was dropped and
+its page-box behaviour reduced to a plain `@page { size: 420mm 297mm; margin: 0 }`.
+The "modernist" design system it was nominally built on contributed only a CSS
+reset — the prototype overrode its palette and typography wholesale, so the rest
+was left behind.
+
+## License
+
+Licensed under the **GNU Affero General Public License v3.0** — see [LICENSE](LICENSE).
+
+In short: use it, print it, sell the prints, modify it, build on it — freely.
+The conditions are that you **credit the author** and that **your modifications
+stay open under the same license**, including when you run a modified version as
+a network service.
+
+**Want it under different terms?** If the AGPL does not fit your case —
+proprietary use, closed redistribution, commercial licensing — get in touch and
+we will sort it out: **massimiliano.camillucci@gmail.com**
+
+Copyright © 2026 Massimiliano Camillucci

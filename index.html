@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La Settimana Possibile — planner settimanale A3</title>
+<meta name="description" content="Planner settimanale su un solo foglio A3 orizzontale, da compilare a penna. Si pianifica prima, si fa il consuntivo dopo.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+/* ═══════════════════════════════════════════════════════════════════════
+   LA SETTIMANA POSSIBILE — foglio A3 orizzontale (420 × 297 mm)
+   Copyright (C) 2026 Massimiliano Camillucci — AGPL-3.0-or-later
+   https://github.com/<utente>/week-canva-kakebo-like
+
+   Print-first: il layout è pensato per la carta, lo schermo è anteprima.
+   Stampa con Ctrl+P → A3 orizzontale, margini "nessuno",
+   grafica di sfondo ATTIVA.
+
+   Per personalizzare: parti dal blocco :root qui sotto.
+   Guida completa in docs/PERSONALIZZA.md
+   ═══════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ─── PALETTE ────────────────────────────────────────────────────────
+     Cambiare questi otto valori ricolora l'intero foglio. */
+  --paper:      #EEEAE0;   /* fondo del foglio */
+  --paper-tile: #F5F2EA;   /* fondo dei riquadri neutri */
+  --dot:        #DCD6C6;   /* reticolo di puntini */
+  --ink:        #26344A;   /* testo, bordi e filetti principali */
+  --ink-soft:   #C9C2B2;   /* filetti secondari, separatori interni */
+  --accent:     #B5533C;   /* numerazione, occhielli, evidenze */
+
+  /* Verde "protetto": ciò che non si negozia (famiglia, impegni fissi). */
+  --protected:      #2F4A3C;
+  --protected-bg:   #DCE8DE;
+  --protected-soft: #B7CCBB;   /* filetti interni sul fondo verde */
+
+  /* Rosso "limite": ciò che questa settimana si evita. */
+  --limit:      #9C4A4A;
+  --limit-bg:   #F3E4E0;
+  --limit-soft: #DFC4BD;       /* filetti interni sul fondo rosso */
+
+  --screen-bg: #C9C6BF;    /* fondo dell'anteprima a schermo, non si stampa */
+
+  /* ─── TIPOGRAFIA ─────────────────────────────────────────────────────
+     Sostituendo i font ricordati di aggiornare anche il <link> a Google
+     Fonts nell'<head>: qui si dichiara l'uso, lì si scarica il file. */
+  --font-display: 'Space Grotesk', system-ui, sans-serif;  /* titoli */
+  --font-body:    Inter, system-ui, sans-serif;            /* testo corrente */
+  --font-mono:    'IBM Plex Mono', ui-monospace, monospace; /* etichette */
+
+  /* ─── GEOMETRIA ──────────────────────────────────────────────────────
+     ATTENZIONE: la regola @page qui sotto NON può leggere queste
+     variabili (le custom properties non si risolvono dentro @page).
+     Cambiando formato vanno aggiornati ENTRAMBI i punti. */
+  --sheet-w: 420mm;        /* A3 orizzontale */
+  --sheet-h: 297mm;
+  --margin:  10mm;         /* rientro del contenuto dal bordo carta */
+  --gutter:   4mm;         /* distanza fra le sezioni e dentro le griglie */
+
+  --col-label: 34mm;       /* colonna nomi nella tabella del log */
+  --col-total: 24mm;       /* colonna Tot nella tabella del log */
+}
+
+/* Formato carta. Duplica --sheet-w / --sheet-h: vedi nota qui sopra. */
+@page { size: 420mm 297mm; margin: 0; }
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+.sheet {
+  position: relative;
+  width: var(--sheet-w);
+  height: var(--sheet-h);
+  overflow: hidden;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+}
+
+/* Anteprima a schermo: il foglio galleggia centrato su un fondo neutro.
+   min-width evita che una finestra stretta comprima il foglio. */
+@media screen {
+  body {
+    display: flex;
+    justify-content: center;
+    min-width: max-content;
+    padding: 24px;
+    background: var(--screen-bg);
+  }
+  .sheet { box-shadow: 0 12px 32px rgba(45, 43, 43, 0.28); }
+}
+
+/* In stampa il foglio È la pagina. width/height espliciti e overflow:hidden
+   su html/body evitano che un arrotondamento sub-millimetrico del layout
+   sbordi e generi una seconda pagina bianca. */
+@media print {
+  html, body {
+    width: var(--sheet-w);
+    height: var(--sheet-h);
+    overflow: hidden;
+  }
+  body { display: block; padding: 0; background: none; min-width: 0; }
+  .sheet {
+    box-shadow: none;
+    break-inside: avoid;
+    break-after: avoid;
+  }
+}
+
+/* Reticolo di puntini a passo 8 mm, sfasato di 5 mm.
+   Raggio 0.55px: quasi invisibile a schermo, corretto in stampa a 300 dpi. */
+.grid-dots {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(var(--dot) 0.55px, transparent 0.55px);
+  background-size: 8mm 8mm;
+  background-position: 5mm 5mm;
+}
+
+/* Crocini d'angolo per il taglio a registro.
+   Si spengono con <body class="no-fiducials">. */
+.fiducial {
+  position: absolute;
+  width: 7mm;
+  height: 7mm;
+}
+.no-fiducials .fiducial { display: none; }
+.fiducial-tl { left: 6mm;  top: 6mm;    border-left: 1.3px solid var(--ink); border-top: 1.3px solid var(--ink); }
+.fiducial-tr { right: 6mm; top: 6mm;    border-right: 1.3px solid var(--ink); border-top: 1.3px solid var(--ink); }
+.fiducial-bl { left: 6mm;  bottom: 6mm; border-left: 1.3px solid var(--ink); border-bottom: 1.3px solid var(--ink); }
+.fiducial-br { right: 6mm; bottom: 6mm; border-right: 1.3px solid var(--ink); border-bottom: 1.3px solid var(--ink); }
+
+/* Colonna portante. Le tre sezioni elastiche — rotte, log, consuntivo —
+   si dividono lo spazio che avanza in rapporto 1.1 : 1 : 1. */
+.frame {
+  position: relative;
+  height: 100%;
+  padding: var(--margin);
+  display: flex;
+  flex-direction: column;
+  gap: var(--gutter);
+}
+
+/* — tipografia ricorrente ——————————————————————————————————————————— */
+.mono { font-family: var(--font-mono); text-transform: uppercase; }
+.display { font-family: var(--font-display); font-weight: 700; line-height: 1; }
+.rule-dotted { border-bottom: 1.2px dotted var(--ink); }
+
+/* — linea di strappo ————————————————————————————————————————————————— */
+.tearline {
+  display: flex;
+  align-items: center;
+  gap: 3mm;
+  font-size: 6pt;
+  letter-spacing: 0.18em;
+  color: var(--ink);
+  opacity: 0.42;
+}
+.tearline > .dash { flex: 1; border-top: 1px dashed var(--ink); }
+
+/* — testata ——————————————————————————————————————————————————————————— */
+.masthead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12mm;
+  border-bottom: 2px solid var(--ink);
+  padding-bottom: 3.5mm;
+}
+.masthead-kicker { font-size: 6.5pt; letter-spacing: 0.2em; color: var(--accent); }
+.masthead h1 { margin: 1.5mm 0 0; font-size: 31pt; letter-spacing: -0.02em; }
+.masthead-sub { margin: 1.5mm 0 0; max-width: 150mm; font-size: 8.5pt; line-height: 1.4; }
+
+.identity {
+  display: flex;
+  flex-direction: column;
+  gap: 3mm;
+  width: 78mm;
+  font-size: 7pt;
+  letter-spacing: 0.1em;
+}
+.identity-row { display: flex; align-items: baseline; gap: 2mm; }
+.identity-row .fill { flex: 1; height: 5mm; }
+.identity-row .fill-short { width: 26mm; height: 5mm; }
+
+/* — etichetta di sezione (01 … 04) ————————————————————————————————— */
+.section-label {
+  display: flex;
+  align-items: baseline;
+  gap: 2.5mm;
+  font-size: 6pt;
+  letter-spacing: 0.18em;
+}
+.section-label .num { color: var(--accent); }
+.section-label .trail { flex: 1; border-bottom: 1px solid var(--ink-soft); }
+
+/* — 01 · baseline ——————————————————————————————————————————————————— */
+.baseline-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--gutter); }
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5mm;
+  padding: 3.5mm;
+  border: 1.3px solid var(--ink);
+  background: var(--paper-tile);
+}
+.tile-kicker { font-size: 6pt; letter-spacing: 0.2em; color: var(--accent); }
+.tile-title { font-size: 13pt; }
+.tile-note { font-size: 7.5pt; line-height: 1.35; }
+.tile-fill { margin-top: auto; height: 6.5mm; border-bottom: 1.2px dotted var(--ink); }
+
+/* Varianti cromatiche: verde = protetto, rosso = limite. */
+.tile-protected { border-color: var(--protected); background: var(--protected-bg); color: var(--protected); }
+.tile-protected .tile-kicker { color: var(--protected); }
+.tile-protected .tile-fill { border-bottom-color: var(--protected); }
+
+.tile-limit { border-color: var(--limit); background: var(--limit-bg); color: var(--limit); }
+.tile-limit .tile-kicker { color: var(--limit); }
+.tile-limit .tile-fill { border-bottom-color: var(--limit); }
+
+/* — 02 · obiettivi per ambito ——————————————————————————————————————— */
+.routes-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--gutter);
+  flex: 1.1;
+}
+.route {
+  display: flex;
+  flex-direction: column;
+  padding: 3.5mm;
+  border: 1.3px solid var(--ink);
+  background: var(--paper-tile);
+}
+.route-kicker { font-size: 6pt; letter-spacing: 0.2em; color: var(--accent); }
+.route-head { display: flex; align-items: baseline; gap: 2mm; margin-top: 1mm; }
+.route-name { font-size: 14pt; }
+.route-tag { font-size: 6.5pt; opacity: 0.6; text-transform: none; }
+.route-divider { margin-top: 2.5mm; border-top: 1px solid var(--ink-soft); }
+.route-field { display: flex; flex-direction: column; gap: 1mm; margin-top: 2.5mm; }
+.route-field .label { font-size: 6pt; letter-spacing: 0.14em; opacity: 0.75; }
+.route-field .fill { height: 6mm; }
+
+/* — 03 · log delle attività reali ————————————————————————————————————
+   Griglia costruita a flexbox: colonna etichetta fissa, sette giorni
+   elastici, colonna totale fissa. Le righe si dividono l'altezza. */
+.log { display: flex; flex-direction: column; flex: 1; }
+
+.log-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  border-bottom: 2px solid var(--ink);
+  padding-bottom: 1.5mm;
+}
+.log-title { display: flex; align-items: baseline; gap: 2.5mm; }
+.log-title .num { font-size: 7pt; color: var(--accent); }
+.log-title .text { font-size: 12pt; }
+.log-hint { font-size: 6pt; letter-spacing: 0.18em; opacity: 0.7; }
+
+.log-days {
+  display: flex;
+  font-size: 6.5pt;
+  letter-spacing: 0.14em;
+  border-bottom: 1px solid var(--ink);
+}
+.log-days .col-label { width: var(--col-label); padding: 1.5mm 2mm; }
+.log-days .col-day {
+  flex: 1;
+  padding: 1.5mm 0;
+  text-align: center;
+  border-left: 1px solid var(--ink-soft);
+}
+.log-days .col-total {
+  width: var(--col-total);
+  padding: 1.5mm 0;
+  text-align: center;
+  border-left: 1.3px solid var(--ink);
+  color: var(--accent);
+}
+
+.log-row { display: flex; flex: 1; border-bottom: 1px dotted var(--ink); }
+.log-row .col-label {
+  width: var(--col-label);
+  padding: 0 2mm;
+  display: flex;
+  align-items: center;
+  gap: 2mm;
+}
+.log-row .col-label .num { font-size: 6.5pt; color: var(--accent); }
+.log-row .col-label .text { font-size: 8pt; font-weight: 500; }
+.log-row .col-day { flex: 1; border-left: 1px solid var(--ink-soft); }
+.log-row .col-total { width: var(--col-total); border-left: 1.3px solid var(--ink); }
+
+/* Riga protetta (Famiglia) e riga limite (Not-to-do): si spuntano,
+   non si contano. Per questo hanno fondo pieno e filetti attenuati. */
+.log-row-protected { background: var(--protected-bg); border-bottom-color: var(--protected); }
+.log-row-protected .col-label { color: var(--protected); }
+.log-row-protected .col-label .num { color: inherit; }
+.log-row-protected .col-label .text { font-weight: 600; }
+.log-row-protected .col-day { border-left-color: var(--protected-soft); }
+.log-row-protected .col-total { border-left-color: var(--protected); }
+
+.log-row-limit { background: var(--limit-bg); border-bottom: 1.3px solid var(--limit); }
+.log-row-limit .col-label { color: var(--limit); }
+.log-row-limit .col-label .num { color: inherit; }
+.log-row-limit .col-label .text { font-weight: 600; }
+.log-row-limit .col-day { border-left-color: var(--limit-soft); }
+.log-row-limit .col-total { border-left-color: var(--limit); }
+
+.legend {
+  display: flex;
+  align-items: center;
+  gap: var(--gutter);
+  padding-top: 1.8mm;
+  font-size: 6pt;
+  letter-spacing: 0.1em;
+}
+.legend-title { color: var(--accent); letter-spacing: 0.18em; }
+.legend-item { display: flex; align-items: center; gap: 1.2mm; }
+.legend-item .glyph { font-size: 9pt; letter-spacing: 0; }
+.legend-custom { display: flex; align-items: center; gap: 1.5mm; flex: 1; }
+.legend-custom .box {
+  display: inline-block;
+  width: 8mm;
+  height: 5mm;
+  border: 1.2px dotted var(--ink);
+}
+.legend-custom .fill { flex: 1; height: 4mm; }
+.legend-custom .caption { color: var(--accent); }
+
+/* — 04 · consuntivo ————————————————————————————————————————————————— */
+.review-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gutter); flex: 1; }
+.review {
+  display: flex;
+  flex-direction: column;
+  padding: 3.5mm;
+  border: 1.3px solid var(--ink);
+  background: var(--paper-tile);
+}
+.review-head { display: flex; align-items: baseline; gap: 2.5mm; }
+.review-head .num { font-size: 7pt; color: var(--accent); }
+.review-head .text { font-size: 13pt; }
+/* Righe distribuite da space-between: aggiungerne o toglierne
+   ridistribuisce l'altezza da sola, senza toccare il CSS. */
+.review-lines {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex: 1;
+  margin-top: 3mm;
+}
+
+/* — 05 · punteggio ——————————————————————————————————————————————————— */
+.score {
+  display: flex;
+  align-items: center;
+  gap: 6mm;
+  height: 13mm;
+  padding-top: 2.5mm;
+  border-top: 2px solid var(--ink);
+}
+.score-title { display: flex; align-items: baseline; gap: 2.5mm; }
+.score-title .num { font-size: 7pt; color: var(--accent); }
+.score-title .text { font-size: 12pt; }
+.score-title .hint { font-size: 6pt; letter-spacing: 0.15em; opacity: 0.7; }
+
+.score-scale { display: flex; align-items: center; gap: 2mm; font-size: 8.5pt; }
+.score-scale .box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 6.5mm;
+  height: 6.5mm;
+  border: 1.2px solid var(--ink);
+}
+.score-scale .box-max { border: 1.3px solid var(--accent); color: var(--accent); }
+
+.mood { display: flex; align-items: center; gap: 2mm; font-size: 6pt; letter-spacing: 0.15em; }
+.mood .label { opacity: 0.7; }
+.mood .faces { font-size: 10pt; letter-spacing: 0; }
+.mood .box {
+  display: inline-block;
+  width: 8mm;
+  height: 6.5mm;
+  border: 1.2px dotted var(--ink);
+}
+
+.change { display: flex; align-items: baseline; gap: 2mm; flex: 1; font-size: 6pt; letter-spacing: 0.15em; }
+.change .label { opacity: 0.7; }
+.change .fill { flex: 1; height: 5mm; }
+</style>
+</head>
+
+<body>
+<section class="sheet">
+  <div class="grid-dots"></div>
+
+  <div class="fiducial fiducial-tl"></div>
+  <div class="fiducial fiducial-tr"></div>
+  <div class="fiducial fiducial-bl"></div>
+  <div class="fiducial fiducial-br"></div>
+
+  <div class="frame">
+
+    <div class="tearline mono">
+      <div class="dash"></div>
+      <span>· strappa qui ·</span>
+      <div class="dash"></div>
+    </div>
+
+    <!-- ══ TESTATA — titolo e intestazione ══════════════════════════════ -->
+    <header class="masthead">
+      <div>
+        <div class="masthead-kicker mono">canvas per una routine reale — non un tracker</div>
+        <h1 class="display">La Settimana Possibile</h1>
+        <p class="masthead-sub">Si pianifica prima, si fa il consuntivo dopo. Stesso foglio, sette giorni, una penna.</p>
+      </div>
+      <div class="identity mono">
+        <div class="identity-row">
+          <span>Nome</span>
+          <span class="fill rule-dotted"></span>
+        </div>
+        <div class="identity-row">
+          <span>Settimana</span>
+          <span class="fill-short rule-dotted"></span>
+          <span>/ 52</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- ══ 01 · BASELINE ════════════════════════════════════════════════
+         Quattro riquadri fissi. Il primo è verde (protetto), il terzo
+         rosso (limite): sono i due poli che rendono realistico il resto. -->
+    <div class="section-label mono">
+      <span class="num">01</span>
+      <span>Baseline — realismo su impegni e obiettivi</span>
+      <span class="trail"></span>
+    </div>
+
+    <div class="baseline-grid">
+      <div class="tile tile-protected">
+        <div class="tile-kicker mono">non negoziabile</div>
+        <div class="tile-title display">Protetto</div>
+        <div class="tile-note">Famiglia &amp; impegni fissi</div>
+        <div class="tile-fill"></div>
+      </div>
+      <div class="tile">
+        <div class="tile-kicker mono">tempo disponibile</div>
+        <div class="tile-title display">Finestre</div>
+        <div class="tile-note">Dove vive il tempo</div>
+        <div class="tile-fill"></div>
+      </div>
+      <div class="tile tile-limit">
+        <div class="tile-kicker mono">limite</div>
+        <div class="tile-title display">Not to do</div>
+        <div class="tile-note">Questa settimana evito</div>
+        <div class="tile-fill"></div>
+      </div>
+      <div class="tile">
+        <div class="tile-kicker mono">intenzione</div>
+        <div class="tile-title display">Focus</div>
+        <div class="tile-note">L'intenzione della settimana</div>
+        <div class="tile-fill"></div>
+      </div>
+    </div>
+
+    <!-- ══ 02 · LE QUATTRO ROTTE ════════════════════════════════════════
+         ▼ PERSONALIZZA QUI — questi sono i tuoi ambiti.
+         ATTENZIONE: ogni nome compare DUE volte nel documento, qui e
+         nella riga corrispondente del log (sezione 03). Cambiali sempre
+         in coppia, altrimenti il foglio si contraddice.
+         Vedi docs/PERSONALIZZA.md § "Rinominare le rotte". -->
+    <div class="section-label mono">
+      <span class="num">02</span>
+      <span>Obiettivi per ambito</span>
+      <span class="trail"></span>
+    </div>
+
+    <div class="routes-grid">
+      <div class="route">
+        <div class="route-kicker mono">rotta 01</div>
+        <div class="route-head">
+          <span class="route-name display">Musica</span>
+          <span class="route-tag mono">Hobby</span>
+        </div>
+        <div class="route-divider"></div>
+        <div class="route-field">
+          <span class="label mono">Traguardo della settimana</span>
+          <span class="fill rule-dotted"></span>
+        </div>
+        <div class="route-field">
+          <span class="label mono">Quando</span>
+          <span class="fill rule-dotted"></span>
+        </div>
+        <div class="route-field">
+          <span class="label mono">Rituale d'inizio, 60 sec</span>
+          <span class="fill rule-dotted"></span>
+        </div>
+      </div>
+
+      <div class="route">
+        <div class="route-kicker mono">rotta 02</div>
+        <div class="route-head">
+          <span class="route-name display">Progetti</span>
+          <span class="route-tag mono">Extra, più di un hobby</span>
+        </div>
+        <div class="route-divider"></div>
+        <div class="route-field">
+          <span class="label mono">Traguardo della settimana</span>
+          <span class="fill rule-dotted"></span>
+        </div>
+        <div class="route-field">
+          <span class="label mono">Quando</span>
+          <span class="fill rule-dotted"></span>
+        </div>
+        <div class="route-field">
+          <span class="label mono">Rituale d'inizio, 60 sec</span>
+          <span class="fill rule-dotted"></span>
+        </div>
+      </div>
+
+      <div class="route">
+        <div class="route-kicker mono">rotta 03</div>
+        <div class="route-head">
+          <span class="route-name display">Studio</span>
+          <span class="route-tag mono">Università</span>
+        </div>
+        <div class="route-divider"></div>
+        <div class="route-field">
+          <span class="label mono">Traguardo della settimana</span>
+          <span class="fill rule-dotted"></span>
+        </div>
+        <div class="route-field">
+          <span class="label mono">Quando</span>
+          <span class="fill rule-dotted"></span>
+        </div>
+        <div class="route-field">
+          <span class="label mono">Rituale d'inizio, 60 sec</span>
+          <span class="fill rule-dotted"></span>
+        </div>
+      </div>
+
+      <div class="route">
+        <div class="route-kicker mono">rotta 04</div>
+        <div class="route-head">
+          <span class="route-name display">Proattività</span>
+          <span class="route-tag mono">Sport, cultura, lettura</span>
+        </div>
+        <div class="route-divider"></div>
+        <div class="route-field">
+          <span class="label mono">Traguardo della settimana</span>
+          <span class="fill rule-dotted"></span>
+        </div>
+        <div class="route-field">
+          <span class="label mono">Quando</span>
+          <span class="fill rule-dotted"></span>
+        </div>
+        <div class="route-field">
+          <span class="label mono">Rituale d'inizio, 60 sec</span>
+          <span class="fill rule-dotted"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ 03 · LOG ═════════════════════════════════════════════════════
+         Sei righe: le quattro rotte (contate) più famiglia e not-to-do
+         (spuntate). ▼ I nomi 01-04 devono combaciare con la sezione 02. -->
+    <div class="log">
+      <div class="log-head">
+        <span class="log-title">
+          <span class="num mono">03</span>
+          <span class="text display">Log delle attività reali</span>
+        </span>
+        <span class="log-hint mono">segna ogni sera — cosa è successo davvero, non un voto</span>
+      </div>
+
+      <div class="log-days mono">
+        <div class="col-label"></div>
+        <div class="col-day">Lun</div>
+        <div class="col-day">Mar</div>
+        <div class="col-day">Mer</div>
+        <div class="col-day">Gio</div>
+        <div class="col-day">Ven</div>
+        <div class="col-day">Sab</div>
+        <div class="col-day">Dom</div>
+        <div class="col-total">Tot</div>
+      </div>
+
+      <div class="log-row">
+        <div class="col-label"><span class="num mono">01</span><span class="text">Musica</span></div>
+        <div class="col-day"></div><div class="col-day"></div><div class="col-day"></div><div class="col-day"></div><div class="col-day"></div><div class="col-day"></div><div class="col-day"></div>
+        <div class="col-total"></div>
+      </div>
+      <div class="log-row">
+        <div class="col-label"><span class="num mono">02</span><span class="text">Progetti</span></div>
+        <div class="col-day"></div><div class="col-day"></div><div class="col-day"></div><div class="col-day"></div><div class="col-day"></div><div class="col-day"></div><div class="col-day"></div>
+        <div class="col-total"></div>
+      </div>
+      <div class="log-row">
+        <div class="col-label"><span class="num mono">03</span><span class="text">Studio</span></div>
+        <div class="col-day"></div><div class="col-day"></div><div class="col-day"></div><div class="col-day"></div><div class="col-day"></div><div class="col-day"></div><div class="col-day"></div>
+        <div class="col-total"></div>
+      </div>
+      <div class="log-row">
+        <div class="col-label"><span class="num mono">04</span><span class="text">Proattività</span></div>
+        <div class="col-day"></div><div class="col-day"></div><div class="col-day"></div><div class="col-day"></div><div class="col-day"></div><div class="col-day"></div><div class="col-day"></div>
+        <div class="col-total"></div>
+      </div>
+      <div class="log-row log-row-protected">
+        <div class="col-label"><span class="num mono">05</span><span class="text">Famiglia ✓</span></div>
+        <div class="col-day"></div><div class="col-day"></div><div class="col-day"></div><div class="col-day"></div><div class="col-day"></div><div class="col-day"></div><div class="col-day"></div>
+        <div class="col-total"></div>
+      </div>
+      <div class="log-row log-row-limit">
+        <div class="col-label"><span class="num mono">06</span><span class="text">Not-to-do ✓</span></div>
+        <div class="col-day"></div><div class="col-day"></div><div class="col-day"></div><div class="col-day"></div><div class="col-day"></div><div class="col-day"></div><div class="col-day"></div>
+        <div class="col-total"></div>
+      </div>
+
+      <!-- ▼ PERSONALIZZA — il tuo alfabeto di simboli. L'ultima casella
+           vuota serve a inventarne uno a mano, sul foglio stampato. -->
+      <div class="legend mono">
+        <span class="legend-title">legenda</span>
+        <span class="legend-item"><span class="glyph">⚡</span>fatto con slancio</span>
+        <span class="legend-item"><span class="glyph">🌱</span>piccolo passo</span>
+        <span class="legend-item"><span class="glyph">🎯</span>traguardo centrato</span>
+        <span class="legend-item"><span class="glyph">🌀</span>rimandato</span>
+        <span class="legend-item"><span class="glyph">🧱</span>bloccato</span>
+        <span class="legend-item"><span class="glyph">✕</span>salto</span>
+        <span class="legend-custom">
+          <span class="box"></span>
+          <span class="fill rule-dotted"></span>
+          <span class="caption">emoji tua</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- ══ 04 · CONSUNTIVO ══════════════════════════════════════════════ -->
+    <div class="section-label mono">
+      <span class="num">04</span>
+      <span>Consuntivo — cosa dice il log</span>
+      <span class="trail"></span>
+    </div>
+
+    <div class="review-grid">
+      <div class="review">
+        <div class="review-head">
+          <span class="num mono">01</span>
+          <span class="text display">Cosa è andato bene</span>
+        </div>
+        <div class="review-lines">
+          <div class="rule-dotted"></div>
+          <div class="rule-dotted"></div>
+          <div class="rule-dotted"></div>
+          <div class="rule-dotted"></div>
+          <div class="rule-dotted"></div>
+        </div>
+      </div>
+      <div class="review">
+        <div class="review-head">
+          <span class="num mono">02</span>
+          <span class="text display">Cosa è andato storto</span>
+        </div>
+        <div class="review-lines">
+          <div class="rule-dotted"></div>
+          <div class="rule-dotted"></div>
+          <div class="rule-dotted"></div>
+          <div class="rule-dotted"></div>
+          <div class="rule-dotted"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ 05 · PUNTEGGIO ═══════════════════════════════════════════════ -->
+    <div class="score">
+      <div class="score-title">
+        <span class="num mono">05</span>
+        <span class="text display">Punteggio settimana</span>
+        <span class="hint mono">cerchia un numero</span>
+      </div>
+      <div class="score-scale mono">
+        <span class="box">0</span>
+        <span class="box">1</span>
+        <span class="box">2</span>
+        <span class="box">3</span>
+        <span class="box">4</span>
+        <span class="box">5</span>
+        <span class="box">6</span>
+        <span class="box">7</span>
+        <span class="box">8</span>
+        <span class="box">9</span>
+        <span class="box box-max">10</span>
+      </div>
+      <div class="mood mono">
+        <span class="label">umore della settimana</span>
+        <span class="faces">😄 🙂 😐 😕 😵</span>
+        <span class="box"></span>
+      </div>
+      <div class="change mono">
+        <span class="label">una cosa che cambio</span>
+        <span class="fill rule-dotted"></span>
+      </div>
+    </div>
+
+  </div>
+</section>
+</body>
+</html>
