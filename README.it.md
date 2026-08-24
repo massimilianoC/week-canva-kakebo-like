@@ -33,7 +33,7 @@ consuntivo si fa sulle prove invece che sui ricordi.
 Cinque blocchi, nell'ordine in cui si usano:
 
 | # | Blocco | Quando | A cosa serve |
-|---|--------|--------|--------------|
+| --- | -------- | -------- | -------------- |
 | **01** | **Baseline** | Lunedì | Quattro riquadri: cosa è *protetto* (famiglia, impegni fissi), dove stanno davvero le tue *finestre* libere, il *not-to-do* della settimana e il *focus*. |
 | **02** | **Obiettivi per ambito** | Lunedì | Quattro "rotte" — i tuoi ambiti. Ognuna ha un traguardo settimanale, un *quando* e un rituale d'inizio da 60 secondi. |
 | **03** | **Log** | Ogni sera | 7 giorni × 6 righe. Segni cosa è successo davvero con dei simboli, non con dei voti. Ci vogliono venti secondi. |
@@ -59,7 +59,7 @@ Tre dettagli che reggono quasi tutto il peso:
 Apri `index.html` nel browser e premi `Ctrl+P`.
 
 | Voce | Valore |
-|---|---|
+| --- | --- |
 | Destinazione | *Salva come PDF*, oppure la tua stampante A3 |
 | Formato carta | **A3** |
 | Orientamento | **Orizzontale** |
@@ -67,10 +67,21 @@ Apri `index.html` nel browser e premi `Ctrl+P`.
 | Scala | **Predefinita / 100%** — *non* "Adatta all'area stampabile" |
 | Grafica di sfondo | **✅ attiva** |
 
-**"Grafica di sfondo" è quella che si sbaglia.** Se resta spenta perdi il fondo
-carta, le righe verde e rossa e il reticolo di puntini: esce bianco con quattro
-righe sopra. Il CSS dichiara già `print-color-adjust: exact`, ma l'ultima parola
-resta alla casella del browser.
+**Di default, la stampa risparmia già inchiostro.** Il fondo carta copre il
+100% di un A3: tinto, saturerebbe un foglio intero ogni settimana. Per questo
+`index.html` porta i fondi neutri a bianco specificamente in `@media print`,
+lasciandoli color carta a schermo: su carta resta il reticolo di puntini, la
+struttura a solo inchiostro, e le due righe pensate per saltare all'occhio —
+protetto (verde) e not-to-do (rosso), che insieme coprono circa un decimo del
+foglio.
+
+Vuoi comunque il fondo tinto su carta? Aggiungi `class="print-tinted"` a
+`<body>` prima di stampare.
+
+**"Grafica di sfondo" deve restare comunque attiva.** Se la spegni nel dialogo
+di stampa perdi il reticolo di puntini e le due righe colorate insieme al fondo
+carta: esce bianco con quattro righe sopra. Il CSS dichiara già
+`print-color-adjust: exact`, ma l'ultima parola resta alla casella del browser.
 
 Al primo caricamento serve la rete, per i tre font di Google. Se lo apri offline
 la tipografia ripiega sui font di sistema e la spaziatura si sfalsa.
@@ -119,11 +130,31 @@ che tiene il foglio esattamente in A3.
 `design-source/` è provenienza, non sorgente. Niente lì dentro viene caricato a
 runtime e niente lì dentro va modificato: la fonte di verità è `index.html`.
 
-## Da dove viene il design
+## Ispirazione
 
-Il foglio è nato come prototipo `doc-page` in
+Il metodo prende in prestito da due tradizioni di pianificazione su pagina
+singola, applicandole a un dominio diverso — una settimana invece di un bilancio
+domestico o di un business:
+
+- **[Kakebo](https://it.wikipedia.org/wiki/Kakeibo)** (家計簿) — il metodo
+  giapponese di budgeting domestico, su carta, compilato a mano: ci si impegna
+  su un piano all'inizio del periodo e lo si riconcilia con quanto successo
+  davvero alla fine, sulla stessa pagina. Il ritmo pianifica-poi-consuntiva delle
+  sezioni 01–02 contro 03–05 di questo foglio è un discendente diretto di quella
+  disciplina.
+- **[Lean Canvas](https://leanstack.com/lean-canvas)** (Ash Maurya) — un piano
+  di business su una pagina sola, organizzato come griglia di riquadri
+  numerati, a sua volta adattato dal
+  **[Business Model Canvas](https://www.strategyzer.com/library/the-business-model-canvas)**
+  (Alexander Osterwalder). L'idea che questo foglio conserva: costringere un
+  piano dentro un insieme fisso di riquadri piccoli e numerati su una pagina
+  sola, così non c'è spazio per essere vaghi e non c'è una pagina 2 in cui
+  nascondersi.
+
+Da dove viene il design *tecnicamente*, a differenza che concettualmente: il
+foglio è nato come prototipo `doc-page` in
 [Claude Design](https://claude.ai/design), poi è stato reimplementato a mano
-come documento di stampa autonomo: il runtime dello strumento (`doc-page.js`,
+come documento di stampa autonomo. Il runtime dello strumento (`doc-page.js`,
 `support.js`, ~110 KB) è stato eliminato e il suo comportamento di page-box
 ridotto a un normale `@page { size: 420mm 297mm; margin: 0 }`. Del design system
 "modernist" su cui era nominalmente costruito è rimasto solo il reset CSS: il
@@ -141,6 +172,6 @@ modificata come servizio di rete.
 
 **Ti serve ad altre condizioni?** Se l'AGPL non va bene per il tuo caso — uso
 proprietario, ridistribuzione chiusa, licenza commerciale — scrivimi e ci
-mettiamo d'accordo: **massimiliano.camillucci@gmail.com**
+mettiamo d'accordo: **[LinkedIn — Massimiliano Camillucci](https://www.linkedin.com/in/massimilianocamillucci/)**
 
 Copyright © 2026 Massimiliano Camillucci

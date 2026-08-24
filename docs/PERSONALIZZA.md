@@ -152,9 +152,17 @@ Due alternative pronte:
 ```
 </details>
 
-**Stampi a getto d'inchiostro?** Il fondo carta copre il 100% di un A3. Se lo
-stampi ogni settimana, metti `--paper: #FFFFFF` e `--paper-tile: #FAFAF8`:
-mantieni la struttura e le righe colorate e consumi una frazione dell'inchiostro.
+**Stampi a getto d'inchiostro?** Già gestito — di default il foglio stampa su
+fondo bianco a prescindere da come imposti `--paper` / `--paper-tile`. Questi
+token governano solo l'anteprima a schermo (e una stampa in cui hai
+esplicitamente riattivato il fondo tinto, vedi sotto): una regola `@media print`
+forza a bianco i fondi neutri specificamente in stampa, perché il fondo carta
+copre il 100% di un A3 e saturerebbe un foglio intero ogni settimana. Le righe
+verde (`--protected`) e rossa (`--limit`) stampano come da progetto — sono il
+~10% del foglio che vale l'inchiostro.
+
+Vuoi comunque il fondo tinto su carta? Aggiungi `class="print-tinted"` a
+`<body>` prima di stampare.
 
 ---
 

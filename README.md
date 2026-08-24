@@ -33,7 +33,7 @@ comes from evidence rather than memory.
 Five blocks, in the order you use them:
 
 | # | Block | When | What it does |
-|---|-------|------|--------------|
+| --- | ------- | ------ | -------------- |
 | **01** | **Baseline** | Monday | Four boxes: what is *protected* (family, fixed commitments), where your free *windows* actually are, your *not-to-do* for the week, and your *focus*. |
 | **02** | **Goals by area** | Monday | Four "routes" — your life areas. Each gets a weekly target, a *when*, and a 60-second starting ritual. |
 | **03** | **Log** | Every evening | 7 days × 6 rows. You mark what actually happened with symbols, not scores. Takes about twenty seconds. |
@@ -57,7 +57,7 @@ Three details that carry most of the weight:
 Open `index.html` in a browser and press `Ctrl+P`.
 
 | Setting | Value |
-|---|---|
+| --- | --- |
 | Destination | *Save as PDF*, or your A3 printer |
 | Paper size | **A3** |
 | Orientation | **Landscape** |
@@ -65,10 +65,20 @@ Open `index.html` in a browser and press `Ctrl+P`.
 | Scale | **Default / 100%** — *not* "Fit to printable area" |
 | Background graphics | **✅ on** |
 
-**Background graphics is the one people get wrong.** With it off you lose the
-paper tint, the green and red rows, and the dot grid — you get white with a few
-lines. The CSS already declares `print-color-adjust: exact`, but the browser
-checkbox still has the last word.
+**By default, printing already saves ink.** The paper tint covers 100 % of an A3
+sheet — tinted, it would saturate a full page every single week. So `index.html`
+switches the neutral backgrounds to white specifically for `@media print`, while
+keeping them on-screen: what you see on paper is the dot grid, the ink-only
+structure, and the two rows that are meant to catch the eye — protected (green)
+and not-to-do (red), together covering roughly a tenth of the sheet.
+
+Want the full tinted background on paper anyway? Add `class="print-tinted"` to
+`<body>` before printing.
+
+**Background graphics still has to stay on.** Turning it off in the print dialog
+kills the dot grid and the two coloured rows along with the tint — you get plain
+white with a few lines. The CSS already declares `print-color-adjust: exact`,
+but the browser checkbox still has the last word.
 
 An internet connection is needed on first load, for the three Google Fonts. Open
 it offline and the typography falls back to system fonts and the spacing drifts.
@@ -116,15 +126,31 @@ verification procedure that keeps the sheet exactly A3.
 `design-source/` is provenance, not source. Nothing in it is loaded at runtime
 and nothing in it should ever be edited — `index.html` is the source of truth.
 
-## Where the design came from
+## Inspiration
 
-The sheet was mocked up in [Claude Design](https://claude.ai/design) as a
-`doc-page` prototype, then reimplemented by hand as a standalone print document:
-the design tool's runtime (`doc-page.js`, `support.js`, ~110 KB) was dropped and
-its page-box behaviour reduced to a plain `@page { size: 420mm 297mm; margin: 0 }`.
-The "modernist" design system it was nominally built on contributed only a CSS
-reset — the prototype overrode its palette and typography wholesale, so the rest
-was left behind.
+The method borrows from two single-page planning traditions, applied to a
+different domain — a week instead of a household budget or a business:
+
+- **[Kakebo](https://en.wikipedia.org/wiki/Kakeibo)** (家計簿) — the Japanese
+  household-budgeting method, on paper, filled in by hand: you commit to a plan
+  at the start of the period and reconcile it against what actually happened at
+  the end, on the same page. The plan-then-reconcile rhythm of sections 01–02
+  versus 03–05 here is a direct descendant of that discipline.
+- **[Lean Canvas](https://leanstack.com/lean-canvas)** (Ash Maurya) — a
+  one-page business plan laid out as a grid of numbered boxes, itself adapted
+  from the **[Business Model Canvas](https://www.strategyzer.com/library/the-business-model-canvas)**
+  (Alexander Osterwalder). The idea this sheet keeps: force a plan into a fixed
+  set of small, numbered boxes on a single page, so there is no room to be vague
+  and no page 2 to hide in.
+
+Where the design came from *technically*, as opposed to conceptually: the sheet
+was mocked up in [Claude Design](https://claude.ai/design) as a `doc-page`
+prototype, then reimplemented by hand as a standalone print document. The design
+tool's runtime (`doc-page.js`, `support.js`, ~110 KB) was dropped and its
+page-box behaviour reduced to a plain
+`@page { size: 420mm 297mm; margin: 0 }`. The "modernist" design system it was
+nominally built on contributed only a CSS reset — the prototype overrode its
+palette and typography wholesale, so the rest was left behind.
 
 ## License
 
@@ -137,6 +163,6 @@ a network service.
 
 **Want it under different terms?** If the AGPL does not fit your case —
 proprietary use, closed redistribution, commercial licensing — get in touch and
-we will sort it out: **massimiliano.camillucci@gmail.com**
+we will sort it out: **[LinkedIn — Massimiliano Camillucci](https://www.linkedin.com/in/massimilianocamillucci/)**
 
 Copyright © 2026 Massimiliano Camillucci

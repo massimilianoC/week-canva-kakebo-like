@@ -14,7 +14,12 @@
 /* ═══════════════════════════════════════════════════════════════════════
    LA SETTIMANA POSSIBILE — foglio A3 orizzontale (420 × 297 mm)
    Copyright (C) 2026 Massimiliano Camillucci — AGPL-3.0-or-later
-   https://github.com/<utente>/week-canva-kakebo-like
+
+   Ispirato al Kakebo (metodo giapponese di budgeting domestico a penna,
+   su quaderno) e al Lean Canvas di Ash Maurya (a sua volta derivato dal
+   Business Model Canvas di Osterwalder): stessa idea, un dominio diverso
+   — un'unica pagina a griglia come strumento di pianificazione e
+   consuntivo, compilata a mano. Dettagli nel README.
 
    Print-first: il layout è pensato per la carta, lo schermo è anteprima.
    Stampa con Ctrl+P → A3 orizzontale, margini "nessuno",
@@ -114,6 +119,22 @@ html, body {
     box-shadow: none;
     break-inside: avoid;
     break-after: avoid;
+  }
+
+  /* ─── STAMPA A INCHIOSTRO RIDOTTO (comportamento predefinito) ────────
+     Il fondo carta copre il 100% di un A3: stamparlo tinto vuol dire
+     saturare un foglio intero ogni settimana. Qui i due fondi neutri
+     diventano bianchi — cioè il getto non ci passa proprio.
+
+     Le tinte verde e rossa restano: sono le due righe che si leggono a
+     colpo d'occhio, valgono l'inchiostro. Coprono circa un decimo del
+     foglio contro il 100% del fondo carta.
+
+     Per stampare (o esportare in PDF) col fondo tinto, come si vede a
+     schermo:  <body class="print-tinted">                              */
+  body:not(.print-tinted) {
+    --paper: #FFFFFF;
+    --paper-tile: #FFFFFF;
   }
 }
 

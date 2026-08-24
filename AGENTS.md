@@ -44,6 +44,12 @@ Violating any of these is a regression, even if the page still looks fine.
    - the `@media print` block that pins `html, body` to the sheet size with
      `overflow: hidden` — it is what stops a sub-millimetre rounding overflow
      from emitting a second blank page
+   - the `body:not(.print-tinted)` rule inside `@media print` that overrides
+     `--paper` / `--paper-tile` to white — deliberate ink-saving default (the
+     paper tint is full-bleed across an A3 sheet; on screen it stays tinted).
+     `class="print-tinted"` on `<body>` opts back into the tinted background at
+     print time. Do not delete this rule to "fix" a colour that looks different
+     on paper than on screen — that difference is intended.
 7. **Colours and geometry go through the `:root` custom properties.** If you
    need a new colour, add a token; do not hard-code a hex value in a rule.
 8. **Keep the sheet monolingual.** It ships in Italian. If asked to translate,
@@ -92,6 +98,11 @@ palette tokens (`--paper`, `--ink`, `--accent`, the `--protected-*` trio, the
 Keep the semantics intact: `--protected` must read as "safe / non-negotiable"
 and `--limit` as "stop / avoid". Swapping them for two arbitrary colours breaks
 the sheet's meaning even though nothing errors.
+
+Remember the `--paper` / `--paper-tile` values you set here are the **on-screen**
+and `class="print-tinted"` colours. What actually reaches paper by default is
+white, per the `body:not(.print-tinted)` override in `@media print` (§2 rule 6)
+— that is intentional and untouched by this recipe.
 
 ### 4.2 Rename a route — ⚠️ two places
 
@@ -200,6 +211,13 @@ console:
 Then **print-preview it** (`Ctrl+P`) and confirm the dialog reports **1 page**,
 not 2. A second blank page is the classic failure of this layout and it does not
 show up on screen.
+
+While the print preview is open, confirm the ink-saving default is still
+working: the `.route` / `.tile` neutral boxes should render **white**, while
+`.tile-protected` (green) and `.tile-limit` (red) keep their tint. If a change
+to `index.html` touched `--paper`, `--paper-tile`, or the `@media print` block,
+verify it did not silently drop the `body:not(.print-tinted)` override — that
+regression is invisible on screen and only shows in print preview.
 
 ---
 

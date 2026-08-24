@@ -150,9 +150,17 @@ Two drop-in alternatives:
 ```
 </details>
 
-**Printing on an inkjet?** The paper tint covers 100 % of an A3 sheet. If you
-print these weekly, set `--paper: #FFFFFF` and `--paper-tile: #FAFAF8` — you
-keep the structure and the coloured rows, and use a fraction of the ink.
+**Printing on an inkjet?** Already handled — by default the sheet prints on a
+white background regardless of what you set `--paper` / `--paper-tile` to. The
+tokens above only govern the on-screen preview (and a printout where you opted
+back into the tint, see below); an `@media print` rule forces the neutral
+backgrounds to white specifically at print time, since the tint covers 100 % of
+an A3 sheet and would saturate a full page every week. The green (`--protected`)
+and red (`--limit`) rows print as designed — they are the ~10 % of the sheet
+worth the ink.
+
+Want the tinted background on paper too? Add `class="print-tinted"` to `<body>`
+before printing.
 
 ---
 
