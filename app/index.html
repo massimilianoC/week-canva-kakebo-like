@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="en" id="html-root">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Week That Fits — digital companion</title>
+<meta name="description" content="Digital, fillable companion to the printable A3 weekly planner. Local-only, no account, no server.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Atkinson+Hyperlegible:wght@400;700&family=Patrick+Hand&family=Caveat:wght@500;600&family=Shadows+Into+Light&display=swap">
+
+<style>
+/* ═══════════════════════════════════════════════════════════════════════
+   THE WEEK THAT FITS — digital companion (app/index.html)
+   Copyright (C) 2026 Massimiliano Camillucci — AGPL-3.0-or-later
+
+   This is the DIGITAL variant. It intentionally breaks the "no JavaScript"
+   rule that governs the printable /index.html — see AGENTS.md §10 for the
+   contract that lets the two coexist. Everything here is local: state lives
+   in localStorage only, there is no network call, no account, no server.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --paper:      #EEEAE0;
+  --paper-tile: #F5F2EA;
+  --dot:        #DCD6C6;
+  --ink:        #26344A;
+  --ink-soft:   #C9C2B2;
+  --accent:     #B5533C;
+
+  --protected:      #2F4A3C;
+  --protected-bg:   #DCE8DE;
+  --protected-soft: #B7CCBB;
+
+  --limit:      #9C4A4A;
+  --limit-bg:   #F3E4E0;
+  --limit-soft: #DFC4BD;
+
+  --screen-bg: #C9C6BF;
+
+  --font-display: 'Space Grotesk', system-ui, sans-serif;
+  --font-body:    Inter, system-ui, sans-serif;
+  --font-mono:    'IBM Plex Mono', ui-monospace, monospace;
+  /* the "filled in by the user" font — selectable in Settings (⚙).
+     Default is a dedicated high-legibility font, distinct from both the
+     mono legend/label typeface and the handwriting-style alternatives. */
+  --font-fill:    'Atkinson Hyperlegible', var(--font-body);
+
+  --sheet-w: 420mm;
+  --sheet-h: 297mm;
+  --margin:  10mm;
+  --gutter:   4mm;
+
+  --col-label: 34mm;
+  --col-total: 24mm;
+}
+
+@page { size: 420mm 297mm; margin: 0; }
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 16px 60px; /* extra bottom room: the fixed .app-toolbar lives there */
+  background: var(--screen-bg);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+}
+
+/* The sheet's true size is always 420×297mm (A3) — that never changes, and
+   print/export always uses it unscaled (see @media print below). On screen,
+   fitSheetToViewport() (see <script>) applies a CSS transform:scale() to
+   .sheet so it comfortably fits a landscape tablet or a modest laptop window
+   instead of assuming a 16"+ desktop monitor; .sheet-viewport is sized to
+   match the scaled footprint so the page doesn't reserve the full unscaled
+   A3 height below the fold. */
+.sheet-viewport { position: relative; }
+
+.sheet {
+  position: relative;
+  width: var(--sheet-w);
+  height: var(--sheet-h);
+  overflow: hidden;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  box-shadow: 0 12px 32px rgba(45, 43, 43, 0.28);
+  transform-origin: top left;
+}
+
+@media print {
+  .app-toolbar, .modal-overlay, .symbol-popover, .symbol-pick-btn,
+  .cell-symbol-btn, .cell-glyph-popover { display: none !important; }
+  html, body {
+    width: var(--sheet-w);
+    height: var(--sheet-h);
+    overflow: hidden;
+    padding: 0;
+    background: none;
+    min-width: 0;
+  }
+  .sheet { box-shadow: none; break-inside: avoid; break-after: avoid; transform: none !important; }
+  .sheet-viewport { width: auto !important; height: auto !important; }
+  body:not(.print-tinted) .sheet {
+    --paper: #FFFFFF;
+    --paper-tile: #FFFFFF;
+  }
+  input, textarea {
+    border: none !important;
+    background: transparent !important;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .field-underline { border-bottom: 1.2px dotted var(--ink) !important; }
+}
+
+.grid-dots {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(var(--dot) 0.55px, transparent 0.55px);
+  background-size: 8mm 8mm;
+  background-position: 5mm 5mm;
+  pointer-events: none;
+}
+
+.frame {
+  position: relative;
+  height: 100%;
+  padding: var(--margin);
+  display: flex;
+  flex-direction: column;
+  gap: var(--gutter);
+}
+
+.mono { font-family: var(--font-mono); text-transform: uppercase; }
+.display { font-family: var(--font-display); font-weight: 700; line-height: 1; }
+
+/* — generic form controls, styled to sit inside the paper look — */
+input, textarea, select {
+  font-family: var(--font-fill);
+  color: var(--ink);
+  background: transparent;
+  border: none;
+  padding: 0;
+  outline: none;
+  width: 100%;
+}
+input::placeholder, textarea::placeholder { color: var(--ink); opacity: 0.35; }
+.field-underline { border-bottom: 1.2px dotted var(--ink); }
+.field-underline:focus { border-bottom-color: var(--accent); }
+textarea { resize: none; line-height: 1.5; font-size: 11pt; }
+
+/* — masthead — */
+.masthead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12mm;
+  border-bottom: 2px solid var(--ink);
+  padding-bottom: 3.5mm;
+}
+.masthead-kicker { font-size: 6.5pt; letter-spacing: 0.2em; color: var(--accent); }
+.masthead h1 { margin: 1.5mm 0 0; font-size: 31pt; letter-spacing: -0.02em; }
+.masthead-sub { margin: 1.5mm 0 0; max-width: 150mm; font-size: 8.5pt; line-height: 1.4; }
+
+.identity {
+  display: flex;
+  flex-direction: column;
+  gap: 3mm;
+  width: 84mm;
+  font-size: 7pt;
+  letter-spacing: 0.1em;
+}
+.identity-row { display: flex; align-items: baseline; gap: 2mm; }
+.identity-row .fill { flex: 1; height: 6mm; font-size: 10.5pt; letter-spacing: 0; }
+.identity-row .fill-short { width: 26mm; height: 5mm; }
+.week-nav { display: flex; align-items: baseline; gap: 1.5mm; }
+.week-nav button {
+  width: 5mm; height: 5mm;
+  border: 1px solid var(--ink); background: none; color: var(--ink);
+  font-family: var(--font-mono); font-size: 8pt; cursor: pointer; padding: 0;
+}
+.week-nav button:hover { background: var(--ink); color: var(--paper); }
+.week-label { font-family: var(--font-mono); }
+
+.section-label {
+  display: flex;
+  align-items: baseline;
+  gap: 2.5mm;
+  font-size: 6pt;
+  letter-spacing: 0.18em;
+}
+.section-label .num { color: var(--accent); }
+.section-label .trail { flex: 1; border-bottom: 1px solid var(--ink-soft); }
+
+.baseline-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--gutter); }
+.tile {
+  display: flex; flex-direction: column; gap: 1.5mm;
+  padding: 3.5mm; border: 1.3px solid var(--ink); background: var(--paper-tile);
+}
+.tile-kicker { font-size: 6pt; letter-spacing: 0.2em; color: var(--accent); }
+.tile-title { font-size: 13pt; }
+.tile-note { font-size: 7.5pt; line-height: 1.35; }
+.tile-fill { margin-top: auto; height: 13mm; font-size: 11pt; }
+
+.tile-protected { border-color: var(--protected); background: var(--protected-bg); color: var(--protected); }
+.tile-protected .tile-kicker { color: var(--protected); }
+.tile-protected .tile-fill { border-bottom-color: var(--protected); }
+.tile-limit { border-color: var(--limit); background: var(--limit-bg); color: var(--limit); }
+.tile-limit .tile-kicker { color: var(--limit); }
+.tile-limit .tile-fill { border-bottom-color: var(--limit); }
+
+.routes-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--gutter); flex: 1.1; }
+.route {
+  display: flex; flex-direction: column;
+  padding: 3.5mm; border: 1.3px solid var(--ink); background: var(--paper-tile);
+}
+.route-kicker { font-size: 6pt; letter-spacing: 0.2em; color: var(--accent); }
+.route-head { display: flex; align-items: baseline; gap: 2mm; margin-top: 1mm; }
+.route-name { font-family: var(--font-display); font-weight: 700; font-size: 14pt; border: none; background: none; flex: 1; min-width: 0; }
+.route-tag { font-size: 6.5pt; opacity: 0.7; text-transform: none; font-family: var(--font-mono); border: none; background: none; width: auto; flex-shrink: 0; text-align: right; max-width: 34mm; }
+.route-divider { margin-top: 2.5mm; border-top: 1px solid var(--ink-soft); }
+.route-field { display: flex; flex-direction: column; gap: 1mm; margin-top: 2.5mm; }
+.route-field .label { font-size: 6pt; letter-spacing: 0.14em; opacity: 0.75; }
+.route-field .fill { height: 7mm; font-size: 10.5pt; }
+
+.log { display: flex; flex-direction: column; flex: 1.35; }
+.log-head { display: flex; align-items: baseline; justify-content: space-between; border-bottom: 2px solid var(--ink); padding-bottom: 1.5mm; }
+.log-title { display: flex; align-items: baseline; gap: 2.5mm; }
+.log-title .num { font-size: 7pt; color: var(--accent); }
+.log-title .text { font-size: 12pt; }
+.log-hint { font-size: 6pt; letter-spacing: 0.18em; opacity: 0.7; }
+
+.log-days { display: flex; font-size: 6.5pt; letter-spacing: 0.14em; border-bottom: 1px solid var(--ink); }
+.log-days .col-label { width: var(--col-label); padding: 1.5mm 2mm; }
+.log-days .col-day { flex: 1; padding: 1.5mm 0; text-align: center; border-left: 1px solid var(--ink-soft); display: flex; flex-direction: column; }
+.log-days .col-day .d-date { opacity: 0.55; font-size: 5.5pt; }
+.log-days .col-total { width: var(--col-total); padding: 1.5mm 0; text-align: center; border-left: 1.3px solid var(--ink); color: var(--accent); }
+
+.log-row { display: flex; flex: 1; border-bottom: 1px dotted var(--ink); }
+.log-row .col-label { width: var(--col-label); padding: 0 2mm; display: flex; align-items: center; gap: 2mm; }
+.log-row .col-label .num { font-size: 6.5pt; color: var(--accent); }
+.log-row .col-label .text { font-size: 8pt; font-weight: 500; font-family: var(--font-display); border: none; background: none; }
+.log-row .col-day { position: relative; flex: 1; border-left: 1px solid var(--ink-soft); display: flex; align-items: center; justify-content: center; }
+.log-row .col-day input {
+  text-align: right; font-size: 13pt; height: 100%;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  padding: 0 1.5mm;
+}
+/* Free-text entry: visually clipped with an ellipsis once it overflows the
+   cell, but the stored value (and the print/export output) is never cut —
+   only the on-screen box is too narrow to show all of it at once. */
+.log-row .col-total { width: var(--col-total); border-left: 1.3px solid var(--ink); display: flex; align-items: center; justify-content: center; }
+.log-row .col-total input { text-align: center; font-size: 10.5pt; }
+
+.log-row-protected { background: var(--protected-bg); border-bottom-color: var(--protected); }
+.log-row-protected .col-label { color: var(--protected); }
+.log-row-protected input { color: var(--protected); }
+.log-row-protected .col-day { border-left-color: var(--protected-soft); }
+.log-row-protected .col-total { border-left-color: var(--protected); }
+
+.log-row-limit { background: var(--limit-bg); border-bottom: 1.3px solid var(--limit); }
+.log-row-limit .col-label { color: var(--limit); }
+.log-row-limit input { color: var(--limit); }
+.log-row-limit .col-day { border-left-color: var(--limit-soft); }
+.log-row-limit .col-total { border-left-color: var(--limit); }
+
+.legend { display: flex; align-items: center; gap: var(--gutter); padding-top: 1.8mm; font-size: 6pt; letter-spacing: 0.1em; }
+.legend-title { color: var(--accent); letter-spacing: 0.18em; }
+.legend-item { display: flex; align-items: center; gap: 1.2mm; }
+.legend-item .glyph { font-size: 9pt; letter-spacing: 0; }
+.legend-custom { display: flex; align-items: center; gap: 1.5mm; flex: 1; }
+.symbol-pick-wrap { position: relative; display: inline-flex; align-items: center; }
+.legend-custom .box { display: inline-block; width: 8mm; height: 5mm; border: 1.2px dotted var(--ink); text-align: center; font-size: 10pt; }
+.symbol-pick-btn {
+  width: 5mm; height: 5mm; margin-left: 1mm;
+  border: 1px solid var(--ink-soft); border-radius: 2px; background: none;
+  font-size: 9pt; line-height: 1; cursor: pointer; padding: 0;
+}
+.symbol-pick-btn:hover { background: var(--ink); border-color: var(--ink); }
+.legend-custom .fill { flex: 1; height: 4mm; }
+.legend-custom .caption { color: var(--accent); }
+
+.symbol-popover {
+  position: fixed; z-index: 30;
+  display: grid; grid-template-columns: repeat(8, 1fr); gap: 3px;
+  width: 220px; padding: 8px;
+  background: #fff; color: var(--ink);
+  border: 1.3px solid var(--ink); border-radius: 5px;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.3);
+  font-family: var(--font-body);
+}
+.symbol-popover[hidden] { display: none; }
+.symbol-popover button {
+  width: 24px; height: 24px; padding: 0;
+  border: none; background: none; border-radius: 3px;
+  font-size: 15px; line-height: 1; cursor: pointer;
+  transition: transform .1s, font-size .1s;
+}
+.symbol-popover button:hover { background: var(--paper); }
+.symbol-popover button.selected {
+  background: var(--accent); color: #fff;
+  font-size: 19px; transform: scale(1.05);
+}
+
+/* Per-cell quick-glyph corner button, log table (03). Invisible until
+   hover/focus so it never visually competes with the handwriting-sized
+   input text — a corner affordance, not a second control taking up row
+   height or width. */
+.cell-symbol-btn {
+  position: absolute; right: 0; bottom: 0;
+  width: 4mm; height: 4mm; padding: 0;
+  border: none; background: var(--paper-tile);
+  color: var(--accent); font-size: 7pt; line-height: 1;
+  cursor: pointer; opacity: 0; transition: opacity .15s;
+  border-top-left-radius: 2px;
+}
+.log-row .col-day:hover .cell-symbol-btn,
+.cell-symbol-btn:focus { opacity: 0.9; }
+.log-row-protected .cell-symbol-btn { background: var(--protected-bg); }
+.log-row-limit .cell-symbol-btn { background: var(--limit-bg); }
+
+.cell-glyph-popover {
+  position: fixed; z-index: 30;
+  display: flex; gap: 2px; padding: 5px;
+  background: #fff; border: 1.3px solid var(--ink); border-radius: 5px;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.3);
+}
+.cell-glyph-popover[hidden] { display: none; }
+.cell-glyph-popover button {
+  width: 22px; height: 22px; padding: 0;
+  border: none; background: none; border-radius: 3px;
+  font-size: 14px; line-height: 1; cursor: pointer;
+}
+.cell-glyph-popover button:hover { background: var(--paper); }
+
+.review-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gutter); flex: .65; }
+.review { display: flex; flex-direction: column; padding: 3.5mm; border: 1.3px solid var(--ink); background: var(--paper-tile); }
+.review-head { display: flex; align-items: baseline; gap: 2.5mm; }
+.review-head .num { font-size: 7pt; color: var(--accent); }
+.review-head .text { font-size: 13pt; }
+.review textarea {
+  flex: 1; margin-top: 3mm; font-size: 11pt;
+  background-image: repeating-linear-gradient(to bottom, transparent, transparent calc(1.6em - 1px), var(--ink-soft) calc(1.6em - 1px), var(--ink-soft) calc(1.6em));
+  background-position: 0 1.4em;
+  line-height: 1.6em;
+}
+
+.score { display: flex; align-items: center; gap: 6mm; height: 13mm; padding-top: 2.5mm; border-top: 2px solid var(--ink); }
+.score-title { display: flex; align-items: baseline; gap: 2.5mm; }
+.score-title .num { font-size: 7pt; color: var(--accent); }
+.score-title .text { font-size: 12pt; }
+.score-title .hint { font-size: 6pt; letter-spacing: 0.15em; opacity: 0.7; }
+.score-scale { display: flex; align-items: center; gap: 2.4mm; font-size: 8.5pt; }
+.score-scale .box {
+  display: flex; align-items: center; justify-content: center;
+  width: 6.5mm; height: 6.5mm; border: 1.2px solid var(--ink);
+  cursor: pointer; background: none; color: var(--ink); font-family: var(--font-mono); padding: 0;
+  transition: transform .12s, font-size .12s; position: relative;
+}
+.score-scale .box-max { border: 1.3px solid var(--accent); color: var(--accent); }
+.score-scale .box.selected {
+  background: var(--ink); color: var(--paper);
+  transform: scale(1.4); font-weight: 700; z-index: 2;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+.score-scale .box-max.selected { background: var(--accent); color: var(--paper); }
+
+.mood { display: flex; align-items: center; gap: 2.5mm; font-size: 6pt; letter-spacing: 0.15em; }
+.mood .label { opacity: 0.7; }
+.mood .faces { display: flex; gap: 1.5mm; font-size: 10pt; letter-spacing: 0; }
+.mood button {
+  background: none; border: 1.2px solid transparent; cursor: pointer;
+  padding: 0.5mm; line-height: 1; border-radius: 3px;
+  transition: transform .12s; position: relative;
+}
+.mood button.selected {
+  border-color: var(--accent); background: var(--paper-tile);
+  transform: scale(1.5); z-index: 2;
+}
+
+.change { display: flex; align-items: baseline; gap: 2mm; flex: 1; font-size: 6pt; letter-spacing: 0.15em; }
+.change .label { opacity: 0.7; }
+.change .fill { flex: 1; height: 6mm; font-size: 10.5pt; }
+
+/* — app toolbar (screen only) — */
+/* Fixed bottom-left, out of flow (see the HTML comment at the toolbar's
+   markup) — deliberately unframed: no boxed panel behind the cluster, each
+   control is its own small pill/circle so the group reads as floating
+   controls, not a UI bar competing with the sheet for attention. */
+.app-toolbar {
+  position: fixed; left: 14px; bottom: 14px; z-index: 15;
+  display: flex; align-items: center; gap: 8px;
+  font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.06em;
+}
+.app-toolbar button {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 12px; border: none; border-radius: 20px;
+  background: rgba(38, 52, 74, 0.82); color: var(--paper);
+  font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase;
+  cursor: pointer; box-shadow: 0 3px 12px rgba(0,0,0,0.22);
+  backdrop-filter: blur(3px);
+}
+.app-toolbar button:hover { background: rgba(38, 52, 74, 0.96); }
+.app-toolbar button.icon-btn { padding: 8px 10px; font-size: 14px; border-radius: 50%; }
+.app-toolbar a.back-link {
+  color: var(--ink); opacity: 0.75; text-decoration: none;
+  padding: 6px 10px; border-radius: 20px; background: rgba(245, 242, 234, 0.8);
+}
+.app-toolbar a.back-link:hover { opacity: 1; text-decoration: underline; }
+
+/* — modal — */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(20, 20, 20, 0.5);
+  display: flex; align-items: center; justify-content: center; z-index: 10;
+}
+.modal-overlay[hidden] { display: none; }
+.modal {
+  width: 420px; max-width: 90vw; max-height: 85vh; overflow-y: auto;
+  background: var(--paper-tile); border: 1.3px solid var(--ink); border-radius: 6px;
+  padding: 20px; font-family: var(--font-body); color: var(--ink);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+}
+.modal h2 { font-family: var(--font-display); font-size: 16pt; margin: 0 0 4px; }
+.modal p.hint { font-size: 12px; opacity: 0.7; margin: 0 0 16px; }
+.modal fieldset { border: none; padding: 0; margin: 0 0 18px; }
+.modal legend { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); padding: 0 0 6px; }
+.modal label { display: block; font-size: 12px; margin-bottom: 4px; opacity: 0.85; }
+.modal select, .modal input[type=text] {
+  width: 100%; padding: 6px 8px; margin-bottom: 10px;
+  border: 1px solid var(--ink-soft); border-radius: 3px; background: #fff; font-size: 13px;
+}
+.modal .route-row { display: flex; gap: 8px; margin-bottom: 8px; }
+.modal .route-row input { flex: 1; margin-bottom: 0; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }
+.modal-actions button {
+  padding: 8px 14px; border-radius: 3px; border: 1px solid var(--ink); cursor: pointer;
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase;
+}
+.modal-actions button.primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.modal-actions button.secondary { background: none; color: var(--ink); }
+
+.data-note { font-size: 11px; color: var(--ink); opacity: 0.65; max-width: 420mm; text-align: center; font-family: var(--font-mono); }
+</style>
+</head>
+
+<body>
+
+<div class="sheet-viewport" id="sheet-viewport">
+<section class="sheet" id="sheet">
+  <div class="grid-dots"></div>
+  <div class="frame">
+
+    <header class="masthead">
+      <div>
+        <div class="masthead-kicker mono" data-i18n="masthead.kicker">a canvas for a real routine — not a tracker</div>
+        <h1 class="display" data-i18n="masthead.title">The Week That Fits</h1>
+        <p class="masthead-sub" data-i18n="masthead.sub">Plan first, review later. One sheet, seven days, one pen.</p>
+      </div>
+      <div class="identity mono">
+        <div class="identity-row">
+          <span data-i18n="identity.name">Name</span>
+          <input class="fill field-underline" id="f-name" type="text" autocomplete="off">
+        </div>
+        <div class="identity-row week-nav">
+          <span data-i18n="identity.week">Week</span>
+          <button type="button" id="btn-week-prev" title="Previous week">‹</button>
+          <span class="week-label" id="week-label">—</span>
+          <button type="button" id="btn-week-next" title="Next week">›</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="section-label mono">
+      <span class="num">01</span>
+      <span data-i18n="s01.title">Baseline — commitments and goals, realistically</span>
+      <span class="trail"></span>
+    </div>
+
+    <div class="baseline-grid">
+      <div class="tile tile-protected">
+        <div class="tile-kicker mono" data-i18n="baseline.protected.kicker">non-negotiable</div>
+        <div class="tile-title display" data-i18n="baseline.protected.title">Protected</div>
+        <div class="tile-note" data-i18n="baseline.protected.note">Family &amp; fixed commitments</div>
+        <textarea class="tile-fill field-underline" id="f-protected" rows="2"></textarea>
+      </div>
+      <div class="tile">
+        <div class="tile-kicker mono" data-i18n="baseline.windows.kicker">available time</div>
+        <div class="tile-title display" data-i18n="baseline.windows.title">Windows</div>
+        <div class="tile-note" data-i18n="baseline.windows.note">Where the time lives</div>
+        <textarea class="tile-fill field-underline" id="f-windows" rows="2"></textarea>
+      </div>
+      <div class="tile tile-limit">
+        <div class="tile-kicker mono" data-i18n="baseline.limit.kicker">limit</div>
+        <div class="tile-title display" data-i18n="baseline.limit.title">Not-to-do</div>
+        <div class="tile-note" data-i18n="baseline.limit.note">What I avoid this week</div>
+        <textarea class="tile-fill field-underline" id="f-limit" rows="2"></textarea>
+      </div>
+      <div class="tile">
+        <div class="tile-kicker mono" data-i18n="baseline.focus.kicker">intention</div>
+        <div class="tile-title display" data-i18n="baseline.focus.title">Focus</div>
+        <div class="tile-note" data-i18n="baseline.focus.note">This week's intention</div>
+        <textarea class="tile-fill field-underline" id="f-focus" rows="2"></textarea>
+      </div>
+    </div>
+
+    <div class="section-label mono">
+      <span class="num">02</span>
+      <span data-i18n="s02.title">Goals by area</span>
+      <span class="trail"></span>
+    </div>
+
+    <div class="routes-grid" id="routes-grid"><!-- rendered by JS from state.routes --></div>
+
+    <div class="log">
+      <div class="log-head">
+        <span class="log-title">
+          <span class="num mono">03</span>
+          <span class="text display" data-i18n="s03.title">What actually happened</span>
+        </span>
+        <span class="log-hint mono" data-i18n="s03.hint">mark each evening — events, not grades</span>
+      </div>
+
+      <div class="log-days mono" id="log-days"><!-- rendered by JS: day names + dates --></div>
+      <div id="log-rows"><!-- rendered by JS: 4 route rows + protected + limit --></div>
+
+      <div class="legend mono">
+        <span class="legend-title" data-i18n="legend.title">legend</span>
+        <span class="legend-item"><span class="glyph">✓</span><span data-i18n="legend.done">done</span></span>
+        <span class="legend-item"><span class="glyph">•</span><span data-i18n="legend.step">step</span></span>
+        <span class="legend-item"><span class="glyph">★</span><span data-i18n="legend.target">target</span></span>
+        <span class="legend-item"><span class="glyph">→</span><span data-i18n="legend.postponed">postponed</span></span>
+        <span class="legend-item"><span class="glyph">!</span><span data-i18n="legend.blocked">blocked</span></span>
+        <span class="legend-item"><span class="glyph">×</span><span data-i18n="legend.skipped">skipped</span></span>
+        <span class="legend-custom">
+          <span class="symbol-pick-wrap">
+            <input class="box" id="f-legend-symbol" type="text" inputmode="text" maxlength="2" autocomplete="off">
+            <button type="button" class="symbol-pick-btn" id="btn-symbol-pick" title="Pick a symbol" aria-haspopup="true" aria-expanded="false">🙂</button>
+          </span>
+          <input class="fill field-underline" id="f-legend-caption" type="text" placeholder="">
+        </span>
+      </div>
+    </div>
+
+    <div class="section-label mono">
+      <span class="num">04</span>
+      <span data-i18n="s04.title">Review — what the log says</span>
+      <span class="trail"></span>
+    </div>
+
+    <div class="review-grid">
+      <div class="review">
+        <div class="review-head">
+          <span class="num mono">01</span>
+          <span class="text display" data-i18n="review.good">What went well</span>
+        </div>
+        <textarea id="f-review-good" rows="4"></textarea>
+      </div>
+      <div class="review">
+        <div class="review-head">
+          <span class="num mono">02</span>
+          <span class="text display" data-i18n="review.bad">What went wrong</span>
+        </div>
+        <textarea id="f-review-bad" rows="4"></textarea>
+      </div>
+    </div>
+
+    <div class="score">
+      <div class="score-title">
+        <span class="num mono">05</span>
+        <span class="text display" data-i18n="score.title">Weekly score</span>
+        <span class="hint mono" data-i18n="score.hint">click one number</span>
+      </div>
+      <div class="score-scale mono" id="score-scale"><!-- rendered by JS --></div>
+      <div class="mood mono">
+        <span class="label" data-i18n="score.mood">weekly mood</span>
+        <span class="faces" id="mood-faces"><!-- rendered by JS --></span>
+      </div>
+      <div class="change mono">
+        <span class="label" data-i18n="score.change">one thing I change</span>
+        <input class="fill field-underline" id="f-change" type="text">
+      </div>
+    </div>
+
+  </div>
+</section>
+</div>
+
+<p class="data-note" data-i18n="footer.note">Everything you type stays on this device, in your browser's local storage. Nothing is sent anywhere. Clearing browser data erases it — export a PDF for anything you want to keep.</p>
+
+<!-- Fixed bottom-left, out of document flow — same reasoning as the
+     printable sheet's .dl-pdf affordance: a floating control cluster costs
+     zero vertical space above/around the sheet, unlike a toolbar sitting in
+     normal flow would. -->
+<div class="app-toolbar">
+  <a class="back-link" href="../index.html" data-i18n="toolbar.printLink">↩ printable A3 version</a>
+  <button type="button" class="icon-btn" id="btn-newweek" title="New week">🗓</button>
+  <button type="button" class="icon-btn" id="btn-settings" title="Settings">⚙</button>
+  <button type="button" id="btn-export">⬇ <span data-i18n="toolbar.export">Export filled PDF</span></button>
+</div>
+
+<div class="symbol-popover" id="symbol-popover" hidden></div>
+<div class="cell-glyph-popover" id="cell-glyph-popover" hidden></div>
+
+<!-- ═══ settings modal ═══ -->
+<div class="modal-overlay" id="settings-modal" hidden>
+  <div class="modal">
+    <h2 data-i18n="settings.title">Settings</h2>
+    <p class="hint" data-i18n="settings.hint">Stored locally on this device and applied every time you open this page.</p>
+
+    <fieldset>
+      <legend data-i18n="settings.language">Language</legend>
+      <select id="opt-lang">
+        <option value="en">English</option>
+        <option value="it">Italiano</option>
+      </select>
+    </fieldset>
+
+    <fieldset>
+      <legend data-i18n="settings.font">Writing font</legend>
+      <select id="opt-font">
+        <option value="legible">Atkinson Hyperlegible (recommended)</option>
+        <option value="standard">Standard (Inter)</option>
+        <option value="hand-patrick">Handwriting — Patrick Hand</option>
+        <option value="hand-caveat">Handwriting — Caveat</option>
+        <option value="hand-shadows">Handwriting — Shadows Into Light</option>
+      </select>
+    </fieldset>
+
+    <fieldset>
+      <legend data-i18n="settings.routes">Your four areas (propagates to the log below)</legend>
+      <div id="settings-routes"><!-- rendered by JS: 4 name+tag row pairs --></div>
+    </fieldset>
+
+    <div class="modal-actions">
+      <button type="button" class="secondary" id="btn-settings-close" data-i18n="settings.close">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ new-week confirm modal ═══ -->
+<div class="modal-overlay" id="newweek-modal" hidden>
+  <div class="modal">
+    <h2 data-i18n="newweek.title">Start a new week?</h2>
+    <p class="hint" id="newweek-body" data-i18n="newweek.body">This looks like a new week. Start a fresh sheet? Last week's entries stay saved and reachable with the ‹ › arrows.</p>
+    <div class="modal-actions">
+      <button type="button" class="secondary" id="btn-newweek-stay" data-i18n="newweek.stay">Keep last week</button>
+      <button type="button" class="primary" id="btn-newweek-start" data-i18n="newweek.start">Start new week</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+/* ─── i18n ──────────────────────────────────────────────────────────── */
+const I18N = {
+  en: {
+    'toolbar.printLink': '↩ printable A3 version',
+    'toolbar.export': 'Export filled PDF',
+    'masthead.kicker': 'a canvas for a real routine — not a tracker',
+    'masthead.title': 'The Week That Fits',
+    'masthead.sub': 'Plan first, review later. One sheet, seven days, one pen.',
+    'identity.name': 'Name',
+    'identity.week': 'Week',
+    's01.title': 'Baseline — commitments and goals, realistically',
+    'baseline.protected.kicker': 'non-negotiable', 'baseline.protected.title': 'Protected', 'baseline.protected.note': 'Family & fixed commitments',
+    'baseline.windows.kicker': 'available time', 'baseline.windows.title': 'Windows', 'baseline.windows.note': 'Where the time lives',
+    'baseline.limit.kicker': 'limit', 'baseline.limit.title': 'Not-to-do', 'baseline.limit.note': 'What I avoid this week',
+    'baseline.focus.kicker': 'intention', 'baseline.focus.title': 'Focus', 'baseline.focus.note': "This week's intention",
+    's02.title': 'Goals by area',
+    'route.target': 'Weekly target', 'route.when': 'When', 'route.ritual': 'Starting ritual, 60 sec',
+    's03.title': 'What actually happened',
+    's03.hint': 'mark each evening — events, not grades',
+    'legend.title': 'legend', 'legend.done': 'done', 'legend.step': 'step', 'legend.target': 'target',
+    'legend.postponed': 'postponed', 'legend.blocked': 'blocked', 'legend.skipped': 'skipped',
+    's04.title': 'Review — what the log says',
+    'review.good': 'What went well', 'review.bad': 'What went wrong',
+    'score.title': 'Weekly score', 'score.hint': 'click one number', 'score.mood': 'weekly mood', 'score.change': 'one thing I change',
+    'footer.note': "Everything you type stays on this device, in your browser's local storage. Nothing is sent anywhere. Clearing browser data erases it — export a PDF for anything you want to keep.",
+    'settings.title': 'Settings', 'settings.hint': 'Stored locally on this device and applied every time you open this page.',
+    'settings.language': 'Language', 'settings.font': 'Writing font', 'settings.routes': 'Your four areas (propagates to the log below)',
+    'settings.close': 'Close',
+    'newweek.title': 'Start a new week?',
+    'newweek.body': "This looks like a new week. Start a fresh sheet? Last week's entries stay saved and reachable with the ‹ › arrows.",
+    'newweek.stay': 'Keep last week', 'newweek.start': 'Start new week',
+    days: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+    familyLabel: 'Family ✓', notToDoLabel: 'Not-to-do ✓',
+    defaultRoutes: [
+      {name:'Music', tag:'Hobby'}, {name:'Projects', tag:'Extra, more than a hobby'},
+      {name:'Study', tag:'University'}, {name:'Initiative', tag:'Sport, culture, reading'}
+    ],
+  },
+  it: {
+    'toolbar.printLink': '↩ versione A3 stampabile',
+    'toolbar.export': 'Esporta PDF compilato',
+    'masthead.kicker': 'una tela per una routine vera — non un tracker',
+    'masthead.title': 'La Settimana Giusta',
+    'masthead.sub': 'Pianifica prima, rivedi dopo. Un foglio, sette giorni, una penna.',
+    'identity.name': 'Nome',
+    'identity.week': 'Settimana',
+    's01.title': 'Base — impegni e obiettivi, con realismo',
+    'baseline.protected.kicker': 'non negoziabile', 'baseline.protected.title': 'Protetto', 'baseline.protected.note': 'Famiglia e impegni fissi',
+    'baseline.windows.kicker': 'tempo disponibile', 'baseline.windows.title': 'Finestre', 'baseline.windows.note': 'Dove vive il tempo',
+    'baseline.limit.kicker': 'limite', 'baseline.limit.title': 'Da non fare', 'baseline.limit.note': 'Cosa evito questa settimana',
+    'baseline.focus.kicker': 'intenzione', 'baseline.focus.title': 'Focus', 'baseline.focus.note': 'Intenzione della settimana',
+    's02.title': 'Obiettivi per area',
+    'route.target': 'Obiettivo settimanale', 'route.when': 'Quando', 'route.ritual': 'Rito di avvio, 60 sec',
+    's03.title': 'Cosa è successo davvero',
+    's03.hint': 'segna ogni sera — eventi, non voti',
+    'legend.title': 'legenda', 'legend.done': 'fatto', 'legend.step': 'passo', 'legend.target': 'obiettivo',
+    'legend.postponed': 'rimandato', 'legend.blocked': 'bloccato', 'legend.skipped': 'saltato',
+    's04.title': 'Revisione — cosa dice il log',
+    'review.good': 'Cosa è andato bene', 'review.bad': 'Cosa è andato male',
+    'score.title': 'Punteggio settimanale', 'score.hint': 'clicca un numero', 'score.mood': 'umore della settimana', 'score.change': 'una cosa da cambiare',
+    'footer.note': "Tutto ciò che scrivi resta su questo dispositivo, nel local storage del browser. Niente viene inviato altrove. Cancellare i dati del browser li cancella — esporta un PDF per ciò che vuoi conservare.",
+    'settings.title': 'Impostazioni', 'settings.hint': 'Salvate localmente su questo dispositivo e applicate ogni volta che apri questa pagina.',
+    'settings.language': 'Lingua', 'settings.font': 'Font di scrittura', 'settings.routes': 'Le tue quattro aree (si propaga al log qui sotto)',
+    'settings.close': 'Chiudi',
+    'newweek.title': 'Iniziare una nuova settimana?',
+    'newweek.body': 'Sembra una nuova settimana. Vuoi iniziare un foglio nuovo? I dati della settimana scorsa restano salvati e raggiungibili con le frecce ‹ ›.',
+    'newweek.stay': 'Resta sulla scorsa', 'newweek.start': 'Inizia nuova settimana',
+    days: ['Lun','Mar','Mer','Gio','Ven','Sab','Dom'],
+    familyLabel: 'Famiglia ✓', notToDoLabel: 'Da non fare ✓',
+    defaultRoutes: [
+      {name:'Musica', tag:'Hobby'}, {name:'Progetti', tag:'Extra, più di un hobby'},
+      {name:'Studio', tag:'Università'}, {name:'Iniziativa', tag:'Sport, cultura, lettura'}
+    ],
+  }
+};
+
+const FONT_STACKS = {
+  'legible': "'Atkinson Hyperlegible', var(--font-body)",
+  'standard': 'var(--font-body)',
+  'hand-patrick': "'Patrick Hand', var(--font-body)",
+  'hand-caveat': "'Caveat', var(--font-body)",
+  'hand-shadows': "'Shadows Into Light', var(--font-body)",
+};
+
+/* ─── ISO week helpers ──────────────────────────────────────────────── */
+function isoWeekInfo(date) {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = (d.getUTCDay() + 6) % 7; // Mon=0..Sun=6
+  d.setUTCDate(d.getUTCDate() - dayNum + 3);
+  const firstThursday = new Date(Date.UTC(d.getUTCFullYear(), 0, 4));
+  const week = 1 + Math.round(((d - firstThursday) / 86400000 - 3 + ((firstThursday.getUTCDay() + 6) % 7)) / 7);
+  const monday = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  monday.setUTCDate(monday.getUTCDate() - dayNum);
+  return { year: d.getUTCFullYear(), week, monday };
+}
+function weekKey(info) { return info.year + '-W' + String(info.week).padStart(2, '0'); }
+function addWeeks(info, n) {
+  const m = new Date(info.monday);
+  m.setUTCDate(m.getUTCDate() + n * 7);
+  return isoWeekInfo(m);
+}
+function fmtDate(d) { return String(d.getUTCDate()).padStart(2, '0') + '/' + String(d.getUTCMonth() + 1).padStart(2, '0'); }
+
+/* ─── persistence ───────────────────────────────────────────────────── */
+const LS_SETTINGS = 'twtf:settings';
+const LS_WEEK_PREFIX = 'twtf:week:';
+const LS_LAST_WEEK = 'twtf:lastWeek';
+
+/* Schema versioning — ADR 0002 (app/docs/decisions/0002-local-schema-versioning.md).
+   Every persisted record carries schemaVersion. migrate*() upgrades older
+   (or field-less, pre-ADR) records to CURRENT_SCHEMA_VERSION on load, before
+   the rest of the app ever sees them. Bump the constant and add one
+   forward-only `if (data.schemaVersion < N)` step per future shape change —
+   never rewrite an existing step. */
+const CURRENT_SCHEMA_VERSION = 1;
+
+function migrateSettings(data) {
+  if (!data.schemaVersion) data.schemaVersion = 1; // pre-ADR record
+  // future: if (data.schemaVersion < 2) { …transform…; data.schemaVersion = 2; }
+  return data;
+}
+function migrateWeek(data) {
+  if (!data.schemaVersion) data.schemaVersion = 1; // pre-ADR record
+  return data;
+}
+
+function loadSettings() {
+  const raw = localStorage.getItem(LS_SETTINGS);
+  const defaults = { schemaVersion: CURRENT_SCHEMA_VERSION, lang: (navigator.language || 'en').startsWith('it') ? 'it' : 'en', font: 'legible', routes: null };
+  if (!raw) return defaults;
+  try { return migrateSettings(Object.assign(defaults, JSON.parse(raw))); } catch (e) { return defaults; }
+}
+function saveSettings(s) { s.schemaVersion = CURRENT_SCHEMA_VERSION; localStorage.setItem(LS_SETTINGS, JSON.stringify(s)); }
+
+function emptyWeekData() {
+  return {
+    schemaVersion: CURRENT_SCHEMA_VERSION,
+    name: '', protected: '', windows: '', limit: '', focus: '',
+    routeFields: [{target:'',when:'',ritual:''},{target:'',when:'',ritual:''},{target:'',when:'',ritual:''},{target:'',when:'',ritual:''}],
+    log: [ ['','','','','','',''], ['','','','','','',''], ['','','','','','',''], ['','','','','','',''], ['','','','','','',''], ['','','','','','',''] ],
+    logTotals: ['','','','','',''],
+    legendSymbol: '', legendCaption: '',
+    reviewGood: '', reviewBad: '', score: null, mood: null, change: '',
+  };
+}
+function loadWeek(key) {
+  const raw = localStorage.getItem(LS_WEEK_PREFIX + key);
+  if (!raw) return emptyWeekData();
+  try { return migrateWeek(Object.assign(emptyWeekData(), JSON.parse(raw))); } catch (e) { return emptyWeekData(); }
+}
+function saveWeek(key, data) { data.schemaVersion = CURRENT_SCHEMA_VERSION; localStorage.setItem(LS_WEEK_PREFIX + key, JSON.stringify(data)); }
+function weekHasData(d) {
+  return !!(d.name || d.protected || d.windows || d.limit || d.focus || d.reviewGood || d.reviewBad || d.change ||
+    d.score !== null || d.mood !== null ||
+    d.routeFields.some(r => r.target || r.when || r.ritual) ||
+    d.log.some(row => row.some(c => c)) || d.logTotals.some(c => c));
+}
+
+/* ─── state ─────────────────────────────────────────────────────────── */
+let settings = loadSettings();
+let currentInfo = isoWeekInfo(new Date());
+let currentKey = weekKey(currentInfo);
+let weekData = loadWeek(currentKey);
+
+function t(key) { return (I18N[settings.lang] && I18N[settings.lang][key]) || I18N.en[key] || key; }
+
+function effectiveRoutes() {
+  if (settings.routes && settings.routes.length === 4) return settings.routes;
+  return I18N[settings.lang].defaultRoutes;
+}
+
+/* ─── rendering ─────────────────────────────────────────────────────── */
+function applyI18nText() {
+  document.documentElement.lang = settings.lang;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    el.textContent = t(el.getAttribute('data-i18n'));
+  });
+  document.getElementById('f-legend-caption').placeholder = t('legend.postponed') === t('legend.postponed') ? (settings.lang === 'it' ? 'il tuo simbolo' : 'your mark') : '';
+}
+
+function applyFont() {
+  document.documentElement.style.setProperty('--font-fill', FONT_STACKS[settings.font] || FONT_STACKS['hand-patrick']);
+}
+
+function renderRoutesAndLog() {
+  const routes = effectiveRoutes();
+  const grid = document.getElementById('routes-grid');
+  grid.innerHTML = routes.map((r, i) => `
+    <div class="route">
+      <div class="route-kicker mono">route 0${i + 1}</div>
+      <div class="route-head">
+        <input class="route-name" data-route="${i}" data-field="name" value="${escapeAttr(r.name)}">
+        <input class="route-tag mono" data-route="${i}" data-field="tag" value="${escapeAttr(r.tag)}">
+      </div>
+      <div class="route-divider"></div>
+      <div class="route-field">
+        <span class="label mono">${t('route.target')}</span>
+        <input class="fill field-underline" data-log-field="target" data-idx="${i}" value="${escapeAttr(weekData.routeFields[i].target)}">
+      </div>
+      <div class="route-field">
+        <span class="label mono">${t('route.when')}</span>
+        <input class="fill field-underline" data-log-field="when" data-idx="${i}" value="${escapeAttr(weekData.routeFields[i].when)}">
+      </div>
+      <div class="route-field">
+        <span class="label mono">${t('route.ritual')}</span>
+        <input class="fill field-underline" data-log-field="ritual" data-idx="${i}" value="${escapeAttr(weekData.routeFields[i].ritual)}">
+      </div>
+    </div>
+  `).join('');
+  grid.querySelectorAll('input[data-route]').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const routes2 = effectiveRoutes().map(r => ({...r}));
+      routes2[+inp.dataset.route][inp.dataset.field] = inp.value;
+      settings.routes = routes2;
+      saveSettings(settings);
+      renderLogRows(); // keep section 03 labels in sync
+      renderSettingsRoutes();
+    });
+  });
+  grid.querySelectorAll('input[data-log-field]').forEach(inp => {
+    inp.addEventListener('input', () => {
+      weekData.routeFields[+inp.dataset.idx][inp.dataset.logField] = inp.value;
+      saveWeek(currentKey, weekData);
+    });
+  });
+
+  renderLogDays();
+  renderLogRows();
+}
+
+function renderLogDays() {
+  const days = I18N[settings.lang].days;
+  const monday = currentInfo.monday;
+  let html = `<div class="col-label"></div>`;
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setUTCDate(d.getUTCDate() + i);
+    html += `<div class="col-day"><span>${days[i]}</span><span class="d-date">${fmtDate(d)}</span></div>`;
+  }
+  html += `<div class="col-total mono">${settings.lang === 'it' ? 'Tot' : 'Total'}</div>`;
+  document.getElementById('log-days').innerHTML = html;
+}
+
+function renderLogRows() {
+  const routes = effectiveRoutes();
+  const rowsEl = document.getElementById('log-rows');
+  let html = '';
+  routes.forEach((r, i) => {
+    html += logRowHtml(i, r.name, '', false, false);
+  });
+  html += logRowHtml(4, t('familyLabel') || I18N[settings.lang].familyLabel, '', true, false);
+  html += logRowHtml(5, I18N[settings.lang].notToDoLabel, '', false, true);
+  rowsEl.innerHTML = html;
+
+  rowsEl.querySelectorAll('input[data-cell]').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const row = +inp.dataset.row, col = inp.dataset.col;
+      if (col === 'total') weekData.logTotals[row] = inp.value;
+      else weekData.log[row][+col] = inp.value;
+      inp.title = inp.value; // full text on hover once it's clipped visually
+      saveWeek(currentKey, weekData);
+    });
+  });
+  rowsEl.querySelectorAll('.cell-symbol-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      openCellGlyphPopover(btn);
+    });
+  });
+}
+
+function logRowHtml(rowIdx, label, _unused, isProtected, isLimit) {
+  const cls = isProtected ? ' log-row-protected' : isLimit ? ' log-row-limit' : '';
+  let cells = '';
+  for (let c = 0; c < 7; c++) {
+    const v = (weekData.log[rowIdx] && weekData.log[rowIdx][c]) || '';
+    cells += `<div class="col-day"><input data-row="${rowIdx}" data-cell data-col="${c}" value="${escapeAttr(v)}" title="${escapeAttr(v)}"><button type="button" class="cell-symbol-btn" data-row="${rowIdx}" data-col="${c}" tabindex="-1" title="Insert a legend symbol">◇</button></div>`;
+  }
+  const totalV = weekData.logTotals[rowIdx] || '';
+  return `<div class="log-row${cls}">
+    <div class="col-label"><span class="num mono">0${rowIdx + 1}</span><span class="text">${escapeHtml(label)}</span></div>
+    ${cells}
+    <div class="col-total"><input data-row="${rowIdx}" data-cell data-col="total" value="${escapeAttr(totalV)}"></div>
+  </div>`;
+}
+
+function renderScoreAndMood() {
+  const scale = document.getElementById('score-scale');
+  let html = '';
+  for (let n = 0; n <= 10; n++) {
+    html += `<button type="button" class="box${n === 10 ? ' box-max' : ''}${weekData.score === n ? ' selected' : ''}" data-score="${n}">${n}</button>`;
+  }
+  scale.innerHTML = html;
+  scale.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+    weekData.score = weekData.score === +b.dataset.score ? null : +b.dataset.score;
+    saveWeek(currentKey, weekData);
+    renderScoreAndMood();
+  }));
+
+  const faces = ['😄','🙂','😐','😕','😵'];
+  const moodEl = document.getElementById('mood-faces');
+  moodEl.innerHTML = faces.map((f, i) => `<button type="button" class="${weekData.mood === i ? 'selected' : ''}" data-mood="${i}">${f}</button>`).join('');
+  moodEl.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+    weekData.mood = weekData.mood === +b.dataset.mood ? null : +b.dataset.mood;
+    saveWeek(currentKey, weekData);
+    renderScoreAndMood();
+  }));
+}
+
+function renderSettingsRoutes() {
+  const routes = effectiveRoutes();
+  document.getElementById('settings-routes').innerHTML = routes.map((r, i) => `
+    <div class="route-row">
+      <input type="text" data-sroute="${i}" data-sfield="name" placeholder="${t('route.target') === t('route.target') ? '' : ''}" value="${escapeAttr(r.name)}">
+      <input type="text" data-sroute="${i}" data-sfield="tag" value="${escapeAttr(r.tag)}">
+    </div>
+  `).join('');
+  document.querySelectorAll('#settings-routes input').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const routes2 = effectiveRoutes().map(r => ({...r}));
+      routes2[+inp.dataset.sroute][inp.dataset.sfield] = inp.value;
+      settings.routes = routes2;
+      saveSettings(settings);
+      renderRoutesAndLog();
+    });
+  });
+}
+
+function bindWeekFields() {
+  const map = { 'f-name': 'name', 'f-protected': 'protected', 'f-windows': 'windows', 'f-limit': 'limit',
+    'f-focus': 'focus', 'f-legend-symbol': 'legendSymbol', 'f-legend-caption': 'legendCaption',
+    'f-review-good': 'reviewGood', 'f-review-bad': 'reviewBad', 'f-change': 'change' };
+  Object.entries(map).forEach(([id, field]) => {
+    const el = document.getElementById(id);
+    el.value = weekData[field] || '';
+    el.oninput = () => { weekData[field] = el.value; saveWeek(currentKey, weekData); };
+  });
+}
+
+function renderWeekLabel() {
+  document.getElementById('week-label').textContent = currentInfo.week + ' / 52 · ' + currentInfo.year;
+}
+
+function renderAll() {
+  applyI18nText();
+  applyFont();
+  renderRoutesAndLog();
+  renderScoreAndMood();
+  bindWeekFields();
+  renderWeekLabel();
+  document.getElementById('opt-lang').value = settings.lang;
+  document.getElementById('opt-font').value = settings.font;
+  renderSettingsRoutes();
+}
+
+function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function escapeAttr(s) { return escapeHtml(s == null ? '' : s); }
+
+/* ─── week switching ────────────────────────────────────────────────── */
+function switchToWeek(info) {
+  currentInfo = info;
+  currentKey = weekKey(info);
+  weekData = loadWeek(currentKey);
+  renderAll();
+}
+
+document.getElementById('btn-week-prev').addEventListener('click', () => switchToWeek(addWeeks(currentInfo, -1)));
+document.getElementById('btn-week-next').addEventListener('click', () => switchToWeek(addWeeks(currentInfo, 1)));
+
+/* ─── new-week detection & manual trigger ──────────────────────────── */
+function maybeOfferNewWeek() {
+  const lastKey = localStorage.getItem(LS_LAST_WEEK);
+  const nowInfo = isoWeekInfo(new Date());
+  const nowKey = weekKey(nowInfo);
+  if (lastKey && lastKey !== nowKey) {
+    const lastData = loadWeek(lastKey);
+    if (weekHasData(lastData)) {
+      currentInfo = isoWeekInfo(new Date(nowInfo.monday)); // default view: new week, blank
+      currentKey = nowKey;
+      weekData = loadWeek(nowKey);
+      openModal('newweek-modal');
+      return;
+    }
+  }
+  localStorage.setItem(LS_LAST_WEEK, nowKey);
+}
+
+document.getElementById('btn-newweek-start').addEventListener('click', () => {
+  localStorage.setItem(LS_LAST_WEEK, currentKey);
+  closeModal('newweek-modal');
+  renderAll();
+});
+document.getElementById('btn-newweek-stay').addEventListener('click', () => {
+  const lastKey = localStorage.getItem(LS_LAST_WEEK);
+  switchToWeek(isoWeekInfoFromKey(lastKey));
+  closeModal('newweek-modal');
+});
+document.getElementById('btn-newweek').addEventListener('click', () => {
+  document.getElementById('newweek-body').textContent = t('newweek.body');
+  openModal('newweek-modal');
+});
+
+function isoWeekInfoFromKey(key) {
+  const [y, w] = key.split('-W').map(Number);
+  const jan4 = new Date(Date.UTC(y, 0, 4));
+  const monday = new Date(jan4);
+  monday.setUTCDate(jan4.getUTCDate() - ((jan4.getUTCDay() + 6) % 7) + (w - 1) * 7);
+  return isoWeekInfo(monday);
+}
+
+/* ─── modal plumbing ────────────────────────────────────────────────── */
+function openModal(id) { document.getElementById(id).hidden = false; }
+function closeModal(id) { document.getElementById(id).hidden = true; }
+
+document.getElementById('btn-settings').addEventListener('click', () => openModal('settings-modal'));
+document.getElementById('btn-settings-close').addEventListener('click', () => closeModal('settings-modal'));
+document.getElementById('opt-lang').addEventListener('change', e => { settings.lang = e.target.value; saveSettings(settings); renderAll(); });
+document.getElementById('opt-font').addEventListener('change', e => { settings.font = e.target.value; saveSettings(settings); applyFont(); });
+
+/* ─── custom symbol picker ──────────────────────────────────────────
+   Browsers give no reliable JS hook to force the OS/virtual-keyboard emoji
+   picker open (mobile keyboards already expose an emoji key on their own
+   when focusing a plain text input, which f-legend-symbol already is).
+   This in-page picker is the cross-device fallback: same behaviour on
+   phone, tablet, and desktop, no OS permission or native API involved. */
+const SYMBOL_CHOICES = [
+  '✓','•','★','→','!','×','◐','✗','♥','☆','◆','●','▲','↻','⚑','✎',
+  '🔥','💧','😊','😴','💪','🎯','📚','🎵','🧘','🚀','☕','🍀','⚡','🌙','☀️','🙏'
+];
+
+function buildSymbolPopover() {
+  const pop = document.getElementById('symbol-popover');
+  pop.innerHTML = SYMBOL_CHOICES.map(s => `<button type="button" data-symbol="${s}">${s}</button>`).join('');
+  pop.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+    const input = document.getElementById('f-legend-symbol');
+    input.value = b.dataset.symbol;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    markSelectedSymbol();
+    closeSymbolPopover();
+    input.focus();
+  }));
+}
+function markSelectedSymbol() {
+  const current = document.getElementById('f-legend-symbol').value.trim();
+  document.getElementById('symbol-popover').querySelectorAll('button').forEach(b => {
+    b.classList.toggle('selected', current !== '' && b.dataset.symbol === current);
+  });
+}
+function openSymbolPopover() {
+  const pop = document.getElementById('symbol-popover');
+  const btn = document.getElementById('btn-symbol-pick');
+  markSelectedSymbol();
+  const r = btn.getBoundingClientRect();
+  pop.style.left = Math.min(r.left, window.innerWidth - 236) + 'px';
+  pop.style.top = (r.bottom + 4) + 'px';
+  pop.hidden = false;
+  btn.setAttribute('aria-expanded', 'true');
+}
+function closeSymbolPopover() {
+  document.getElementById('symbol-popover').hidden = true;
+  document.getElementById('btn-symbol-pick').setAttribute('aria-expanded', 'false');
+}
+buildSymbolPopover();
+document.getElementById('btn-symbol-pick').addEventListener('click', e => {
+  e.stopPropagation();
+  const pop = document.getElementById('symbol-popover');
+  pop.hidden ? openSymbolPopover() : closeSymbolPopover();
+});
+
+/* ─── per-log-cell quick-glyph popover ──────────────────────────────
+   Optional shortcut: the corner button on each log cell (see logRowHtml)
+   opens this with the 6 legend glyphs + the user's own custom symbol, if
+   set, so a symbol can be inserted with one click instead of typing —
+   without the corner button itself ever taking width away from the cell's
+   text input. */
+const SYMBOL_LEGEND_GLYPHS = ['✓', '•', '★', '→', '!', '×'];
+function openCellGlyphPopover(triggerBtn) {
+  const pop = document.getElementById('cell-glyph-popover');
+  const custom = document.getElementById('f-legend-symbol').value.trim();
+  const glyphs = custom && !SYMBOL_LEGEND_GLYPHS.includes(custom)
+    ? [...SYMBOL_LEGEND_GLYPHS, custom] : SYMBOL_LEGEND_GLYPHS;
+  const targetInput = triggerBtn.previousElementSibling;
+  pop.innerHTML = glyphs.map(g => `<button type="button" data-glyph="${g}">${g}</button>`).join('');
+  pop.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+    targetInput.value = b.dataset.glyph;
+    targetInput.dispatchEvent(new Event('input', { bubbles: true }));
+    closeCellGlyphPopover();
+  }));
+  const r = triggerBtn.getBoundingClientRect();
+  pop.style.left = Math.min(r.left, window.innerWidth - 190) + 'px';
+  pop.style.top = (r.bottom + 4) + 'px';
+  pop.hidden = false;
+}
+function closeCellGlyphPopover() { document.getElementById('cell-glyph-popover').hidden = true; }
+
+document.addEventListener('click', e => {
+  const pop = document.getElementById('symbol-popover');
+  if (!pop.hidden && !pop.contains(e.target) && e.target.id !== 'btn-symbol-pick') closeSymbolPopover();
+  const cellPop = document.getElementById('cell-glyph-popover');
+  if (!cellPop.hidden && !cellPop.contains(e.target) && !e.target.classList.contains('cell-symbol-btn')) closeCellGlyphPopover();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeSymbolPopover(); closeCellGlyphPopover(); }
+});
+
+/* ─── export ────────────────────────────────────────────────────────── */
+document.getElementById('btn-export').addEventListener('click', () => window.print());
+
+/* ─── responsive on-screen fit ──────────────────────────────────────
+   The sheet's true size is always 420×297mm (A3) — print/export always use
+   it unscaled (transform reset in @media print). On screen, scale it down
+   to comfortably fit whatever viewport it's opened in: a landscape tablet
+   or a modest laptop window, not just a 16"+/21" desktop monitor. Never
+   scales up past 1 (never render larger than true A3 size). */
+function fitSheetToViewport() {
+  const sheet = document.getElementById('sheet');
+  const wrap = document.getElementById('sheet-viewport');
+  sheet.style.transform = 'none'; // measure the true, unscaled box first
+  const naturalW = sheet.offsetWidth;
+  const naturalH = sheet.offsetHeight;
+  const availW = window.innerWidth - 32;
+  const availH = window.innerHeight - 110; // top/bottom padding + gap + footer note + toolbar room
+  const scale = Math.min(availW / naturalW, availH / naturalH, 1);
+  sheet.style.transform = `scale(${scale})`;
+  wrap.style.width = (naturalW * scale) + 'px';
+  wrap.style.height = (naturalH * scale) + 'px';
+}
+let fitResizeTimer = null;
+window.addEventListener('resize', () => {
+  clearTimeout(fitResizeTimer);
+  fitResizeTimer = setTimeout(fitSheetToViewport, 120);
+});
+
+/* ─── boot ──────────────────────────────────────────────────────────── */
+maybeOfferNewWeek();
+renderAll();
+document.fonts.ready.then(fitSheetToViewport); // fonts loading can shift nothing here (fixed mm sizes), but keeps first paint accurate
+fitSheetToViewport();
+</script>
+</body>
+</html>

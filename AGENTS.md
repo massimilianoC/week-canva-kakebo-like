@@ -8,8 +8,33 @@ not agent-specific, only the phrasing is.
 
 ## 1. What this repository is
 
-A **single-file, print-first document**. `index.html` renders one A3 landscape
-sheet (420 × 297 mm) that a person prints and fills in with a pen.
+This repository has **two coexisting products**, and the rules below are
+scoped accordingly:
+
+1. `index.html` — a **single-file, print-first document**. Renders one A3
+   landscape sheet (420 × 297 mm) that a person prints and fills in with a
+   pen. §2's hard constraints (no JS, no build step, no dependencies) apply
+   to this file only, and always will — it is not a legacy stage on the way
+   to becoming an app, it is the point of the project.
+2. `app/index.html` — a **digital companion**, covered separately in §10.
+   It is allowed JavaScript and browser-local storage; it does not touch
+   paper, it does not call a server, and it must never be merged back into
+   the constraints of §2.
+
+If you are only here to edit the printable sheet, §2–§9 are the full contract
+and you can ignore §10. If you are working on the digital companion, read §10
+before touching `app/index.html` — most of §2 does not apply there, but a few
+things (palette tokens, monolingual-per-string discipline, no server) still
+do, and §10 says which.
+
+Neither file is a stepping stone to replace the other. The intent (see the
+README) is to keep the paper sheet as the primary artifact indefinitely, with
+the digital companion growing alongside it — not to eventually delete
+`index.html` in favour of `app/`.
+
+---
+
+## 1a. `index.html` — the printable sheet
 
 It is not a web app. It has no build step, no package manager, no dependencies,
 no JavaScript, and no test suite. The entire product is one HTML file with an
@@ -66,10 +91,11 @@ Violating any of these is a regression, even if the page still looks fine.
 
 | Path | Status | Notes |
 |---|---|---|
-| `index.html` | **the source of truth** | Edit this. It is the product. |
-| `README.md` | user-facing project overview | Update it when user-facing behaviour changes. |
-| `docs/CUSTOMIZE.md` | customization guide | Update it when customization behaviour changes. |
-| `docs/preview.png` | regenerate | Stale after any visual change — see §6. |
+| `index.html` | **source of truth, printable sheet** | Edit this for the paper product. Governed by §2–§9. |
+| `app/index.html` | **source of truth, digital companion** | Edit this for the digital product. Governed by §10. |
+| `README.md` | user-facing project overview | Update it when user-facing behaviour changes, in either variant. |
+| `docs/CUSTOMIZE.md` | customization guide | Update it when customization behaviour changes (paper variant). |
+| `docs/preview.png` | regenerate | Stale after any visual change to `index.html` — see §6. |
 | `examples/*.pdf` | regenerate | Generated from `index.html` — see §6a. Never hand-edit a PDF. |
 | `AGENTS.md`, `CLAUDE.md` | edit deliberately | Agent instructions; keep their shared constraints aligned. |
 | `LICENSE` | **do not edit** | Verbatim AGPL-3.0 text from the FSF. |
@@ -276,6 +302,9 @@ template.
 
 ## 8. Definition of done
 
+This checklist is for changes to `index.html` (the printable sheet). For
+`app/index.html` (the digital companion), use §10's own checklist instead.
+
 - [ ] §5 verification run, all criteria pass
 - [ ] print preview reports exactly 1 page
 - [ ] no new files, dependencies, JS, or build steps introduced
@@ -292,3 +321,183 @@ template.
 This project is AGPL-3.0. Contributions are accepted under the same license.
 Do not add code copied from an incompatibly-licensed source, and do not remove
 the copyright header comment at the top of the `<style>` block in `index.html`.
+
+---
+
+## 10. `app/index.html` — the digital companion
+
+### 10.1 What it is, and why it is a separate file
+
+`app/index.html` is a fillable, local-first digital version of the same
+weekly sheet. It exists because the paper sheet's hard constraints (§2: no
+JS, no state) are permanent and non-negotiable, but there is real demand for
+the sheet to also be usable as an on-screen, self-populating, exportable form.
+Rather than compromise `index.html`, that demand gets its own file with its
+own, looser contract.
+
+**The two files stay in visual sync but are not code-shared.** There is no
+build step to keep them identical (§1a still bans one), so a visual change to
+one (palette, section order, route/log structure) should be considered for
+the other, by hand, in the same PR when it's structural. Cosmetic print-only
+details (fiducials, tear line, ink-saving print override) do not need to
+carry over — the companion is screen/export-first, not print-first.
+
+### 10.2 What is allowed here that is not allowed in `index.html`
+
+- **JavaScript.** All state management, rendering, and interaction is vanilla
+  JS in one inline `<script>` block. No framework, no bundler, no npm
+  dependency — "no build step" (§1a) still applies; "no JavaScript" does not.
+- **Local persistence.** `localStorage` only — keyed `twtf:settings`,
+  `twtf:week:<ISO-year>-W<ISO-week>`, `twtf:lastWeek`. No cookies (they add
+  nothing `localStorage` doesn't already give here, and cap out at ~4KB), no
+  IndexedDB yet (see §10.5 for where that's headed), no server, no analytics,
+  no network call of any kind. This must remain true even as the app grows —
+  it is the privacy promise stated in the page's own footer note.
+- **Runtime language switching.** `index.html` stays English-only, translated
+  wholesale if ever (§1a / §2 rule 8 of the old numbering). `app/index.html`
+  ships English **and** Italian behind a live toggle (`I18N` object in the
+  `<script>` block). Adding a third language means adding a third key to
+  every entry in `I18N`, not a partial one.
+- **User-editable structure at runtime.** The four life-area names/tags
+  (`route.name` / `route.tag`) are edited in the Settings modal (⚙) or
+  in-place on the sheet, stored in `settings.routes`, and propagate to the
+  log rows in section 03 automatically (`renderLogRows()` re-reads
+  `effectiveRoutes()`). This is the digital equivalent of AGENTS.md §4.2's
+  "rename a route — two places" — except here it's one place, because the
+  renderer is what keeps section 02 and 03 in sync, not the editor's care.
+
+### 10.3 What still carries over from the paper sheet's discipline
+
+- **Palette and geometry tokens.** The `:root` custom properties mirror
+  `index.html`'s (`--paper`, `--ink`, `--accent`, `--protected-*`,
+  `--limit-*`, `--sheet-w/h`, `--margin`, `--gutter`, `--col-label`,
+  `--col-total`). Recolouring one should usually mean recolouring the other,
+  deliberately, in the same commit.
+- **Physical units for anything meant to print.** The export path
+  (`window.print()`, §10.4) still renders through the same `.sheet` box at
+  `420mm × 297mm`, so `mm`/`pt` discipline still matters inside `.sheet`.
+  The app-only chrome (toolbar, modals) is UI, not paper, and may use `px`.
+- **"Protected" reads safe, "limit" reads stop.** Don't repurpose the green/
+  red tokens for anything else.
+
+### 10.4 Export ("compiled PDF")
+
+The ⬇ **Export filled PDF** button calls `window.print()`. There is no PDF
+library — printing *is* the export mechanism, same as the static file's
+`.dl-pdf` link, except here the browser's print pipeline is rendering the
+live, filled-in DOM instead of a pre-baked example. `@media print` hides
+`.app-toolbar` and the modals, and strips input/textarea chrome (borders,
+backgrounds) so filled fields read as ink on paper, not as form controls.
+If you change the field markup, check that this still holds — an export with
+visible input outlines is a regression.
+
+### 10.5 Where this is headed (context, not a license to build ahead of need)
+
+The long-term intent, per the project owner, is to keep evolving this file
+step by step from "digital form filled by hand-typing" toward "instrument
+with scoring, suggestions, and automated feedback," eventually with local
+structured storage (e.g. SQLite via `sql.js` or OPFS) once `localStorage`'s
+per-origin cap becomes a real constraint, and later still with OCR ingestion
+of *photographed paper sheets* — closing the loop between the two products
+instead of forcing a choice between them. None of that is built yet. Do not
+pre-build scaffolding for it (no dead SQLite import, no stub OCR module, no
+speculative schema) until a specific step is actually being implemented —
+that's the project's own no-speculative-abstraction stance (see CLAUDE.md),
+applied here too. When a step *is* implemented, log the architectural
+decision in this section so the next agent has the same context.
+
+### 10.6 Definition of done for `app/index.html` changes
+
+- [ ] No new npm dependency, bundler, or build step introduced.
+- [ ] No network call added — verify in DevTools' Network tab, not just by
+      reading the diff.
+- [ ] Every string added to `I18N.en` has a matching `I18N.it` entry (or
+      vice versa) — no half-translated UI state.
+- [ ] Route rename (via ⚙ or in-place) still propagates to section 03 —
+      re-check after any change to `renderRoutesAndLog()` / `renderLogRows()`.
+- [ ] `window.print()` export still hides `.app-toolbar` and modals, and
+      still strips input/textarea chrome — check via print preview.
+- [ ] `localStorage` schema changes are additive or migrated, not silently
+      breaking — a returning user's saved week must not vanish. See §10.7's
+      note on ADR `0002-local-schema-versioning.md`.
+- [ ] `README.md` updated if user-facing behaviour of the companion changed.
+
+### 10.7 Spec-first governance for `app/`
+
+The digital companion is governed by a **spec-first agentic development**
+discipline: docs precede non-trivial code, decisions are recorded, and work
+moves in small, checkable slices. This is deliberately scoped to `app/` —
+the printable sheet stays exactly as light-touch as §1a–§9 already describe;
+do not import any of this section's process onto `index.html`.
+
+**Adopted profile:** Base ("SFAD Compact") plus three borrowings from the
+fuller profile — a slice tracker, MADR-format ADRs, and a committed session
+handoff record — because this is a solo developer working through coding
+agents across sessions, not a team with a second human reviewer or a CI
+pipeline. That combination is itself a documented calibration point of the
+methodology this was adapted from, not an ad-hoc shortcut.
+
+**Where things live:**
+
+| What | Where |
+|---|---|
+| Reading order, index of docs | `app/docs/INDEX.md` |
+| Current focus + backlog | `app/docs/planning/ROADMAP.md` |
+| Per-slice status tracker | `app/docs/planning/EXECUTION_SPEC.md` |
+| Architecture/tooling decisions | `app/docs/decisions/NNNN-kebab-title.md` (MADR format, sequential, never deleted — only superseded) |
+| Per-feature requirements + acceptance examples | `app/specs/<feature-id>/spec.md`, copied from `app/specs/feature/spec.md` |
+| Cross-session working memory | `app/dev/SESSION_HANDOFF.md` (committed; overwritten each session, not appended to) |
+
+**Before any non-trivial change to `app/index.html`:** read `app/docs/INDEX.md`
+→ `ROADMAP.md` → the current milestone in `EXECUTION_SPEC.md` → the relevant
+spec under `app/specs/` → `SESSION_HANDOFF.md`. A change with no spec and no
+tracker row is the thing this governance layer exists to prevent — write the
+spec first, even a short one, before writing the code.
+
+**Slice discipline:** one slice (`M<n>.<m>`) in progress at a time; a slice
+closes only when it is reachable/usable end to end, its declared check has
+actually been run, and `EXECUTION_SPEC.md` is updated in the same change —
+not "later." No slice is purely internal infrastructure; each maps to a
+user-observable outcome, however small.
+
+**Decision gates (adapted for solo work):** routine, reversible edits within
+an already-approved spec need no check-in. Anything that changes product
+scope, the persisted data shape, the SSoT for a concern, or is hard to
+reverse gets presented as an explicit choice — recommended option,
+alternatives, consequences, latest safe decision point — before
+implementation, per `decision`-gate framing borrowed from the source
+methodology. Don't ask for ceremonial approval of routine file edits; do ask
+before inventing scope the project owner hasn't stated.
+
+**Risk-based verification (adapted — no CI, no second reviewer):**
+
+| Tier | Example in this app | Extra check beyond "open it and exercise the acceptance examples" |
+|---|---|---|
+| Low | copy/label changes, styling | none beyond the baseline |
+| Medium | new persisted field, new interactive control | confirm `localStorage` round-trips correctly after a reload |
+| High | any change to the shape of `settings` or `weekData` | migration check per ADR `0002` — an old-shape record must still load without data loss |
+
+There is no "Critical" tier in this app in the source methodology's sense
+(no payments, no irreversible server-side mutation) — the closest equivalent
+is silent data loss in `localStorage`, which High tier already covers.
+
+**Pillars explicitly not adopted, and why** (per the source methodology's own
+rule: don't drop a pillar silently — record the reason): idempotency keys,
+job/queue orchestration, server-side RBAC, an audit trail, and client-side
+secret handling are all boundary/server concerns from the upstream pattern
+this was adapted from, and this app has no server and no API — there is
+nothing on the other side of a boundary for them to apply to. The one
+server-oriented pillar that *does* apply despite there being no server is
+forward-compatible, versioned data schemas — `localStorage` is this app's
+real persistence boundary, and it gets the same discipline an API response
+schema would. See ADR `0002-local-schema-versioning.md`.
+
+**Commit style:** Conventional Commits (`feat:`, `fix:`, `docs:`, `chore:`,
+scoped to `app` when useful, e.g. `feat(app): …`), same convention already in
+use at repo root (§7) — no new convention introduced for this subfolder.
+
+**Promotion signal:** if `app/` ever gets a second contributor with recurring
+handoffs, a real external dependency, or material security/privacy risk,
+promote from Base-Compact toward the fuller profile (add
+`docs/architecture/`, `docs/requirements/`) rather than stretching this
+lighter layer past what it's built for.

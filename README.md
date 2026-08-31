@@ -95,6 +95,44 @@ edge of the 420 × 297 mm. No desktop A3 printer can do that; they all keep a
 crop marks are there so you can trim the sheet back to true size. Choosing "fit
 to page" instead shrinks everything by about 4 %, and the 6 pt labels go with it.
 
+## Digital companion
+
+`app/index.html` is a separate, optional, fillable version of the same sheet
+— open it in a browser and type instead of printing. It is **not** a
+replacement for the paper sheet; the two are meant to keep coexisting.
+
+- **Precompiled current week.** It detects today's ISO week automatically and
+  fills in the seven day-dates for you — no more counting on your fingers
+  which Monday it is.
+- **Everything is saved locally.** Your entries live in your browser's
+  `localStorage`, on this device only. Nothing is ever sent anywhere — no
+  account, no server, no analytics. Clearing your browser data erases it, so
+  export a PDF (below) for anything you want to keep.
+- **New-week detection.** Open it after your current week has rolled over and
+  it asks *"Start a new week?"* before clearing the sheet — your finished
+  week stays saved and reachable with the ‹ › arrows next to the week number.
+- **⚙ Settings** (gear icon, top-left): language (English/Italiano, switches
+  live), a writing font for anything you type — **Atkinson Hyperlegible** by
+  default (designed for maximum legibility, and visually distinct from the
+  mono legend/label typeface), with a plain option and three handwriting-style
+  alternatives (Patrick Hand, Caveat, Shadows Into Light) if you prefer that
+  look — and your four life-area names/tags. Renaming an area here updates the
+  matching log row automatically — no need to keep two places in sync by hand,
+  unlike the paper version. All of it persists across sessions.
+- **Export.** The ⬇ button triggers the browser's print dialog against the
+  live, filled-in sheet (same A3 physical layout as `index.html`) — "Save as
+  PDF" gives you a compiled copy with everything you typed.
+- **Your own symbol, picked not typed.** The 🙂 button next to the legend's
+  custom-symbol box opens a small on-page picker (checkmarks, arrows, common
+  emoji) — same picker on phone, tablet, or desktop, since browsers don't
+  expose a way to force the OS emoji keyboard open from a webpage. Tapping the
+  text field itself still works too; mobile keyboards show their own emoji key.
+
+It intentionally does **not** follow `index.html`'s "no JavaScript" rule —
+see [AGENTS.md §10](AGENTS.md#10-appindexhtml--the-digital-companion) for the
+contract that governs it, and why the two files stay separate rather than
+merging into one.
+
 ## Customize it
 
 Everything lives in one file, in two places:
@@ -113,7 +151,9 @@ verification procedure that keeps the sheet exactly A3.
 
 ```text
 .
-├── index.html          ← the sheet. The only file that matters. Self-contained.
+├── index.html          ← the printable sheet. Self-contained, no JS.
+├── app/
+│   └── index.html      ← the digital companion. JS + localStorage, no server.
 ├── AGENTS.md           ← rules and verification steps for AI coding agents
 ├── CLAUDE.md           ← concise instructions for Claude Code
 ├── README.md           ← this file (English)

@@ -21,3 +21,18 @@ node_modules/
 # index.html per AGENTS.md §6a) is tracked on purpose.
 *.pdf
 !examples/*.pdf
+
+# A separate, undocumented sub-project (Python/Jinja2/Playwright canvas
+# generator) that landed in this working directory from elsewhere. It isn't
+# described anywhere in AGENTS.md/README.md, it also contains real filled-in
+# personal data under data/weeks/ and examples/demo-weeks/2026-w35.json
+# (mislabeled as a demo), and it pulls in exactly the build-step/dependency
+# tooling AGENTS.md §1a says this repo doesn't have. Stays local until it's
+# deliberately reviewed, cleaned of real data, and documented as an actual
+# product of this repo — see the project owner's decision on 2026-08-31.
+examples/settimana-possibile/
+
+# Private planning data — a filled-in week is someone's real life, never a
+# template. Same rule as the *.pdf exception above, applied to app/'s own
+# local sample/export data.
+app/data/
